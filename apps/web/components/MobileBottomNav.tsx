@@ -12,6 +12,7 @@ interface MobileNavItem {
   icon: React.ComponentType<{ className?: string }>;
   href?: string;
   action?: () => void;
+  onClick?: () => void;
   badge?: 'wishlist' | 'compare';
   visible?: boolean;
 }
@@ -47,7 +48,13 @@ export function MobileBottomNav() {
 
   const navItems: MobileNavItem[] = useMemo(
     () => [
-      { label: 'Shop', href: '/', icon: Home, visible: true },
+      { 
+        label: 'Shop', 
+        href: '/products', 
+        icon: Home, 
+        visible: true,
+        onClick: () => console.info('🛒 [MobileBottomNav] Shop tapped, navigating to /products'),
+      },
       { 
         label: 'Filters', 
         icon: Filter, 
@@ -73,7 +80,7 @@ export function MobileBottomNav() {
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(15,23,42,0.08)]">
       <div className="mx-auto flex max-w-md items-stretch justify-between px-2 py-2">
-        {navItems.filter(item => item.visible).map(({ label, href, icon: Icon, badge, action }) => {
+        {navItems.filter(item => item.visible).map(({ label, href, icon: Icon, badge, action, onClick }) => {
           const isActive = href ? pathname === href : false;
           const badgeValue = resolveBadgeValue(badge);
 
@@ -108,6 +115,7 @@ export function MobileBottomNav() {
             <Link
               key={label}
               href={href || '#'}
+              onClick={onClick}
               className={`flex flex-1 flex-col items-center rounded-xl px-2 py-1 text-xs font-medium transition ${
                 isActive ? 'text-gray-900' : 'text-gray-500'
               }`}
