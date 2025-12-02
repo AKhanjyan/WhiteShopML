@@ -171,10 +171,10 @@
       // Connect to MongoDB (optional in development mode)
       const dbConnection = await connectDB();
       
-      if (!dbConnection && process.env.NODE_ENV === 'production') {
-        console.error('❌ MongoDB connection is required in production mode');
-        process.exit(1);
-      }
+      // if (!dbConnection && process.env.NODE_ENV === 'production') {
+      //   console.error('❌ MongoDB connection is required in production mode');
+      //   process.exit(1);
+      // }
       
       // Setup MongoDB reconnection in development mode
       if (!dbConnection && process.env.NODE_ENV !== 'production') {
