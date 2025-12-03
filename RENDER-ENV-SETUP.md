@@ -64,3 +64,4 @@ Render Dashboard-ում պետք է ավելացնել նաև հետևյալ var
 
 Տես `apps/api/.env.example` ֆայլը բոլոր անհրաժեշտ variables-ների ցուցակի համար:
 
+

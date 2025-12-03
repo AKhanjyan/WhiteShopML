@@ -84,3 +84,4 @@ fetch('https://your-backend.onrender.com/health', {
 
 Եթե `access-control-allow-origin` header-ը հավասար է `https://white-shop-web-dhzt.vercel.app`, ապա ամեն ինչ ճիշտ է:
 
+

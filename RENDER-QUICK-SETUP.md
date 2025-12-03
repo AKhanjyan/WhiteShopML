@@ -66,3 +66,4 @@ const allowedOrigin = process.env.APP_URL || 'http://localhost:3000';
 - `RENDER-ENV-SETUP.md` - Մանրամասն հրահանգներ
 - `RENDER-SETUP.md` - Ընդհանուր setup հրահանգներ
 
+

@@ -21,3 +21,4 @@ echo "✅ The render.yaml file is already configured with APP_URL."
 echo "   If you're using Render Blueprint, it will be added automatically."
 echo ""
 
+

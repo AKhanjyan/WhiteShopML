@@ -42,6 +42,19 @@ const corsOptions = {
     // allow wildcard *.vercel.app (preview deployments)
     const vercelWildcard = /\.vercel\.app$/;
 
+    // Allow localhost and local IP addresses for development
+    const isLocalhost = /^http:\/\/localhost(:\d+)?$/.test(origin);
+    const isLocalIP = /^http:\/\/172\.\d+\.\d+\.\d+(:\d+)?$/.test(origin) ||
+                      /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/.test(origin) ||
+                      /^http:\/\/10\.\d+\.\d+\.\d+(:\d+)?$/.test(origin) ||
+                      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin);
+
+    // In development, allow all local origins
+    if (process.env.NODE_ENV === 'development' && (isLocalhost || isLocalIP)) {
+      console.log('✅ [CORS] Allowing local origin:', origin);
+      return callback(null, true);
+    }
+
     if (
       allowedOrigins.includes(origin) ||
       vercelWildcard.test(origin)
