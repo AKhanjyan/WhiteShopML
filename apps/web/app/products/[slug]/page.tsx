@@ -31,10 +31,13 @@ interface ProductVariant {
   id: string;
   sku: string;
   price: number;
+  originalPrice?: number | null;
   compareAtPrice?: number;
   stock: number;
   available: boolean;
   options: VariantOption[];
+  productDiscount?: number | null;
+  globalDiscount?: number | null;
 }
 
 interface ProductLabel {
@@ -63,6 +66,8 @@ interface Product {
     slug: string;
     title: string;
   }>;
+  productDiscount?: number | null;
+  globalDiscount?: number | null;
 }
 
 
@@ -406,7 +411,10 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Get current variant
   const currentVariant = selectedVariant || findVariantByColorAndSize(selectedColor, selectedSize) || product?.variants?.[0] || null;
   const price = currentVariant?.price || 0;
+  const originalPrice = currentVariant?.originalPrice;
   const compareAtPrice = currentVariant?.compareAtPrice;
+  // Get discount from variant or product level
+  const discountPercent = currentVariant?.productDiscount || product?.productDiscount || null;
   const maxQuantity = currentVariant?.stock && currentVariant.stock > 0 ? currentVariant.stock : 1;
   const isOutOfStock = !currentVariant || currentVariant.stock === 0;
 
@@ -431,7 +439,7 @@ export default function ProductPage({ params }: ProductPageProps) {
    */
   const adjustQuantity = (delta: number) => {
     if (isOutOfStock) {
-      console.warn('[ProductPage] Քանակը չի փոխվում, քանի որ ապրանքը հասանելի չէ');
+      console.warn('[ProductPage] Quantity cannot be changed because product is not available');
       return;
     }
 
@@ -600,7 +608,7 @@ const handleCompareToggle = (e: React.MouseEvent) => {
           </div>
         </div>
         <p className="mt-8 text-center text-gray-500 font-medium">
-          Ապրանքի տվյալները բեռնվում են…
+          Loading product data...
         </p>
       </div>
     );
@@ -805,14 +813,24 @@ const handleCompareToggle = (e: React.MouseEvent) => {
             <p className="text-lg text-gray-600 mb-4">{product.subtitle}</p>
           )}
           <div className="flex items-center gap-3 mb-6">
-            <p className="text-2xl font-bold text-gray-900">
-              {formatPrice(price, currency)}
-            </p>
-            {compareAtPrice && compareAtPrice > price && (
-              <p className="text-xl text-gray-500 line-through">
-                {formatPrice(compareAtPrice, currency)}
+            <div className="flex items-center gap-2">
+              <p className="text-2xl font-bold text-gray-900">
+                {formatPrice(price, currency)}
               </p>
-            )}
+              {discountPercent && discountPercent > 0 && (
+                <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  -{discountPercent}%
+                </span>
+              )}
+            </div>
+            {(originalPrice && originalPrice > price) || (compareAtPrice && compareAtPrice > price) ? (
+              <p className="text-xl text-gray-500 line-through">
+                {formatPrice(
+                  (originalPrice && originalPrice > price) ? originalPrice : (compareAtPrice || 0),
+                  currency
+                )}
+              </p>
+            ) : null}
           </div>
           
           {product?.description && (
@@ -824,17 +842,54 @@ const handleCompareToggle = (e: React.MouseEvent) => {
 
           <div className="mt-8 p-6 bg-white border border-gray-200 rounded-2xl shadow-sm space-y-6">
             {/* Stock Status */}
-            {currentVariant && (
+            {product && product.variants && product.variants.length > 0 && (
               <div className="flex items-center justify-between">
-                <p className={`text-sm font-semibold ${currentVariant.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {currentVariant.stock > 0 
-                    ? `✓ Պահեստում: ${currentVariant.stock} հատ` 
-                    : '✗ Պահեստում չկա'
+                {(() => {
+                  // Calculate total stock based on selected filters
+                  let totalStock = 0;
+                  
+                  if (selectedColor && selectedSize) {
+                    // If both color and size are selected, show stock of specific variant
+                    totalStock = currentVariant?.stock || 0;
+                  } else if (selectedColor) {
+                    // If only color is selected, sum all variants of this color
+                    totalStock = product.variants
+                      .filter(v => {
+                        const hasColor = v.options?.some(opt => opt.key === 'color' && opt.value === selectedColor);
+                        return hasColor && v.stock > 0;
+                      })
+                      .reduce((sum, v) => sum + v.stock, 0);
+                  } else if (selectedSize) {
+                    // If only size is selected, sum all variants of this size
+                    totalStock = product.variants
+                      .filter(v => {
+                        const hasSize = v.options?.some(opt => opt.key === 'size' && opt.value === selectedSize);
+                        return hasSize && v.stock > 0;
+                      })
+                      .reduce((sum, v) => sum + v.stock, 0);
+                  } else {
+                    // If nothing is selected, show total stock of all variants
+                    totalStock = product.variants
+                      .filter(v => v.stock > 0)
+                      .reduce((sum, v) => sum + v.stock, 0);
                   }
-                </p>
-                {isOutOfStock && (
-                  <span className="text-xs font-medium text-red-500 uppercase tracking-wide">Առկա չէ</span>
-                )}
+                  
+                  const isAvailable = totalStock > 0;
+                  
+                  return (
+                    <>
+                      <p className={`text-sm font-semibold ${isAvailable ? 'text-green-600' : 'text-red-600'}`}>
+                        {isAvailable 
+                          ? `✓ In stock: ${totalStock} pcs` 
+                          : '✗ Out of stock'
+                        }
+                      </p>
+                      {!isAvailable && (
+                        <span className="text-xs font-medium text-red-500 uppercase tracking-wide">Not available</span>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
 
@@ -878,12 +933,12 @@ const handleCompareToggle = (e: React.MouseEvent) => {
                   setIsAddingToCart(true);
                   try {
                     if (!product) {
-                      setShowMessage('Ապրանքը հասանելի չէ');
+                      setShowMessage('Product is not available');
                       setTimeout(() => setShowMessage(null), 2000);
                       return;
                     }
 
-                    // Եթե օգտատերը գրանցված չէ, օգտագործում ենք localStorage
+                    // If user is not logged in, use localStorage
                     if (!isLoggedIn) {
                       if (typeof window === 'undefined') {
                         setIsAddingToCart(false);
@@ -894,7 +949,7 @@ const handleCompareToggle = (e: React.MouseEvent) => {
                       const stored = localStorage.getItem(CART_KEY);
                       const cart: Array<{ productId: string; productSlug: string; variantId: string; quantity: number }> = stored ? JSON.parse(stored) : [];
                       
-                      // Ստուգում ենք, արդյոք արդեն կա այս ապրանքը զամբյուղում
+                      // Check if this product is already in cart
                       const existingItem = cart.find(item => item.productId === product.id && item.variantId === currentVariant.id);
                       
                       if (existingItem) {
@@ -910,26 +965,26 @@ const handleCompareToggle = (e: React.MouseEvent) => {
                       
                       localStorage.setItem(CART_KEY, JSON.stringify(cart));
                       window.dispatchEvent(new Event('cart-updated'));
-                      setShowMessage(`Ավելացվեց ${quantity} հատ զամբյուղում`);
+                      setShowMessage(`Added ${quantity} pcs to cart`);
                       setTimeout(() => setShowMessage(null), 2000);
                       setIsAddingToCart(false);
                       return;
                     }
 
-                    // Եթե օգտատերը գրանցված է, օգտագործում ենք API
+                    // If user is logged in, use API
                     await apiClient.post('/api/v1/cart/items', {
                       productId: product.id,
                       variantId: currentVariant.id,
                       quantity,
                     });
 
-                    setShowMessage(`Ավելացվեց ${quantity} հատ զամբյուղում`);
+                    setShowMessage(`Added ${quantity} pcs to cart`);
                     setTimeout(() => setShowMessage(null), 2000);
                     window.dispatchEvent(new Event('cart-updated'));
                   } catch (error: any) {
                     console.error('Error adding to cart:', error);
                     if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-                      // Եթե սխալ է տեղի ունեցել, փորձում ենք localStorage-ով
+                      // If error occurred, try with localStorage
                       if (typeof window !== 'undefined' && product && currentVariant) {
                         try {
                           const CART_KEY = 'shop_cart_guest';
@@ -951,19 +1006,19 @@ const handleCompareToggle = (e: React.MouseEvent) => {
                           
                           localStorage.setItem(CART_KEY, JSON.stringify(cart));
                           window.dispatchEvent(new Event('cart-updated'));
-                          setShowMessage(`Ավելացվեց ${quantity} հատ զամբյուղում`);
+                          setShowMessage(`Added ${quantity} pcs to cart`);
                           setTimeout(() => setShowMessage(null), 2000);
                         } catch (localError) {
                           console.error('Error adding to guest cart:', localError);
-                          setShowMessage('Չհաջողվեց ավելացնել զամբյուղ');
+                          setShowMessage('Failed to add to cart');
                           setTimeout(() => setShowMessage(null), 3000);
                         }
                       } else {
-                        setShowMessage('Չհաջողվեց ավելացնել զամբյուղ');
+                        setShowMessage('Failed to add to cart');
                         setTimeout(() => setShowMessage(null), 3000);
                       }
                     } else {
-                      setShowMessage('Չհաջողվեց ավելացնել զամբյուղ');
+                      setShowMessage('Failed to add to cart');
                       setTimeout(() => setShowMessage(null), 3000);
                     }
                   } finally {
@@ -1007,13 +1062,17 @@ const handleCompareToggle = (e: React.MouseEvent) => {
             {colorGroups.length > 0 && (
               <div className="space-y-3 border-t border-gray-100 pt-4">
                 <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                  Գույն
+                  COLOR
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {colorGroups.map((group) => {
                     const isSelected = selectedColor === group.color;
                     const colorName = group.color;
                     const colorValue = getColorValue(colorName);
+                    
+                    // Always show total stock for this color (without size filter)
+                    // This allows user to see all available colors when changing selection
+                    const displayStock = group.stock;
                     
                     // Check if this color has available variants with selected size
                     const availableVariants = selectedSize
@@ -1052,7 +1111,7 @@ const handleCompareToggle = (e: React.MouseEvent) => {
                         />
                         <span className="text-sm font-medium text-gray-900 capitalize">{colorName}</span>
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                          {group.stock}
+                          {displayStock}
                         </span>
                       </button>
                     );
@@ -1065,12 +1124,16 @@ const handleCompareToggle = (e: React.MouseEvent) => {
             {sizeGroups.length > 0 && (
               <div className="space-y-3 border-t border-gray-100 pt-4">
                 <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                  Չափս
+                  SIZE
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {sizeGroups.map((group) => {
                     const isSelected = selectedSize === group.size;
                     const sizeName = group.size;
+                    
+                    // Always show total stock for this size (without color filter)
+                    // This allows user to see all available sizes when changing selection
+                    const displayStock = group.stock;
                     
                     // Check if this size has available variants with selected color
                     const availableVariants = selectedColor
@@ -1105,7 +1168,7 @@ const handleCompareToggle = (e: React.MouseEvent) => {
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-sm font-medium text-gray-900">{sizeName}</span>
-                          <span className="text-xs text-gray-500">{group.stock} հատ</span>
+                          <span className="text-xs text-gray-500">{displayStock} pcs</span>
                         </div>
                       </button>
                     );
@@ -1124,16 +1187,16 @@ const handleCompareToggle = (e: React.MouseEvent) => {
         </div>
       </div>
 
-      {/* Related Products */}
-      {product.categories && product.categories.length > 0 && (
-        <RelatedProducts 
-          categorySlug={product.categories[0].slug} 
-          currentProductId={product.id}
-        />
-      )}
-
       {/* Product Reviews */}
       <ProductReviews productId={product.id} />
+
+      {/* Related Products - Show at the bottom */}
+      <div className="mt-16">
+        <RelatedProducts 
+          categorySlug={product.categories && product.categories.length > 0 ? product.categories[0].slug : undefined} 
+          currentProductId={product.id}
+        />
+      </div>
     </div>
   );
 }

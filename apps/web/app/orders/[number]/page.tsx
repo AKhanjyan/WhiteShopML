@@ -223,30 +223,36 @@ export default function OrderPage() {
           <Card className="p-6 sticky top-4">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
             <div className="space-y-4 mb-6">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>{formatPrice(order.totals.subtotal, currency)}</span>
-              </div>
-              {order.totals.discount > 0 && (
-                <div className="flex justify-between text-gray-600">
-                  <span>Discount</span>
-                  <span>-{formatPrice(order.totals.discount, currency)}</span>
-                </div>
+              {order.totals ? (
+                <>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal</span>
+                    <span>{formatPrice(order.totals.subtotal, currency)}</span>
+                  </div>
+                  {order.totals.discount > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Discount</span>
+                      <span>-{formatPrice(order.totals.discount, currency)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span>{formatPrice(order.totals.shipping, currency)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax</span>
+                    <span>{formatPrice(order.totals.tax, currency)}</span>
+                  </div>
+                  <div className="border-t border-gray-200 pt-4">
+                    <div className="flex justify-between text-lg font-bold text-gray-900">
+                      <span>Total</span>
+                      <span>{formatPrice(order.totals.total, currency)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-gray-600">Loading totals...</div>
               )}
-              <div className="flex justify-between text-gray-600">
-                <span>Shipping</span>
-                <span>{formatPrice(order.totals.shipping, currency)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Tax</span>
-                <span>{formatPrice(order.totals.tax, currency)}</span>
-              </div>
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex justify-between text-lg font-bold text-gray-900">
-                  <span>Total</span>
-                  <span>{formatPrice(order.totals.total, currency)}</span>
-                </div>
-              </div>
             </div>
 
             <div className="space-y-3">

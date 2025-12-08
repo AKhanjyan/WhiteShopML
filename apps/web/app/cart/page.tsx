@@ -15,6 +15,7 @@ interface CartItem {
   variant: {
     id: string;
     sku: string;
+    stock?: number;
     product: {
       id: string;
       title: string;
@@ -24,6 +25,7 @@ interface CartItem {
   };
   quantity: number;
   price: number;
+  originalPrice?: number | null;
   total: number;
 }
 
@@ -126,6 +128,8 @@ export default function CartPage() {
                     id: string;
                     sku: string;
                     price: number;
+                    originalPrice?: number | null;
+                    stock?: number;
                   }>;
                 }>(`/api/v1/products/${item.productSlug}`);
 
@@ -151,6 +155,7 @@ export default function CartPage() {
                     variant: {
                       id: variant._id?.toString() || variant.id,
                       sku: variant.sku || '',
+                      stock: variant.stock !== undefined ? variant.stock : undefined,
                       product: {
                         id: productData.id,
                         title: translation?.title || 'Product',
@@ -160,6 +165,7 @@ export default function CartPage() {
                     },
                     quantity: item.quantity,
                     price: variant.price,
+                    originalPrice: variant.originalPrice || null,
                     total: variant.price * item.quantity,
                   },
                   shouldRemove: false,
@@ -272,6 +278,15 @@ export default function CartPage() {
       return;
     }
 
+    // Find the cart item to check stock
+    const cartItem = cart?.items.find(item => item.id === itemId);
+    if (cartItem && cartItem.variant.stock !== undefined) {
+      if (quantity > cartItem.variant.stock) {
+        alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
+        return;
+      }
+    }
+
     try {
       // Եթե օգտատերը գրանցված չէ, օգտագործում ենք localStorage
       if (!isLoggedIn) {
@@ -293,6 +308,17 @@ export default function CartPage() {
           );
           
           if (item) {
+            // Check stock for guest cart
+            if (cartItem && cartItem.variant.stock !== undefined && quantity > cartItem.variant.stock) {
+              alert(`Մատչելի քանակը ${cartItem.variant.stock} հատ է: Դուք չեք կարող ավելացնել ավելի շատ քանակ:`);
+              setUpdatingItems(prev => {
+                const next = new Set(prev);
+                next.delete(itemId);
+                return next;
+              });
+              return;
+            }
+            
             item.quantity = quantity;
             localStorage.setItem(CART_KEY, JSON.stringify(guestCart));
             window.dispatchEvent(new Event('cart-updated'));
@@ -317,8 +343,15 @@ export default function CartPage() {
 
       fetchCart();
       window.dispatchEvent(new Event('cart-updated'));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating quantity:', error);
+      // Show user-friendly error message
+      const errorMessage = error?.detail || error?.message || 'Չհաջողվեց թարմացնել քանակը';
+      if (errorMessage.includes('stock') || errorMessage.includes('exceeds')) {
+        alert(`Մատչելի քանակը բավարար չէ: ${errorMessage}`);
+      } else {
+        alert(errorMessage);
+      }
     } finally {
       setUpdatingItems(prev => {
         const next = new Set(prev);
@@ -400,10 +433,19 @@ export default function CartPage() {
           {cart.items.map((item) => (
             <div
               key={item.id}
-              className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 px-4 sm:px-6 py-6 hover:bg-gray-50 transition-colors"
+              className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 px-4 sm:px-6 py-6 hover:bg-gray-50 transition-colors relative"
             >
+              <button
+                onClick={() => handleRemoveItem(item.id)}
+                className="absolute top-2 right-2 md:top-4 md:right-4 w-7 h-7 rounded-full bg-white hover:bg-red-50 flex items-center justify-center text-gray-500 hover:text-red-600 transition-colors shadow-md border border-gray-200 hover:border-red-300 z-10"
+                aria-label="Remove item"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
               {/* Product */}
-              <div className="md:col-span-6 flex items-start gap-4 relative">
+              <div className="md:col-span-6 flex items-start gap-4">
                 <Link
                   href={`/products/${item.variant.product.slug}`}
                   className="w-24 h-24 sm:w-28 sm:h-28 bg-gray-100 rounded-lg flex-shrink-0 relative overflow-hidden"
@@ -436,15 +478,6 @@ export default function CartPage() {
                     <p className="text-xs text-gray-500 mt-1">SKU: {item.variant.sku}</p>
                   )}
                 </div>
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  className="md:hidden absolute right-0 top-0 text-gray-400 hover:text-red-600 transition-colors"
-                  aria-label="Remove item"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
               </div>
 
               {/* Quantity */}
@@ -466,6 +499,7 @@ export default function CartPage() {
                   <input
                     type="number"
                     min="1"
+                    max={item.variant.stock !== undefined ? item.variant.stock : undefined}
                     value={item.quantity}
                     onChange={(e) => {
                       const newQuantity = parseInt(e.target.value) || 1;
@@ -473,12 +507,14 @@ export default function CartPage() {
                     }}
                     disabled={updatingItems.has(item.id)}
                     className="w-16 h-8 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                    title={item.variant.stock !== undefined ? `Մատչելի քանակը ${item.variant.stock} հատ է` : ''}
                   />
                   <button
                     onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                    disabled={updatingItems.has(item.id)}
+                    disabled={updatingItems.has(item.id) || (item.variant.stock !== undefined && item.quantity >= item.variant.stock)}
                     className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Increase quantity"
+                    title={item.variant.stock !== undefined && item.quantity >= item.variant.stock ? `Մատչելի քանակը ${item.variant.stock} հատ է` : 'Ավելացնել քանակ'}
                   >
                     <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -492,22 +528,16 @@ export default function CartPage() {
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 md:hidden">
                   Subtotal
                 </p>
-                <span className="text-lg font-semibold text-blue-600 mt-1 md:mt-0">
-                  {formatPrice(item.total, currency)}
-                </span>
-              </div>
-
-              {/* Remove */}
-              <div className="md:col-span-1 hidden md:flex items-center justify-center md:justify-end">
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                  aria-label="Remove item"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex items-center gap-3 mt-1 md:mt-0">
+                  <span className="text-lg font-semibold text-blue-600">
+                    {formatPrice(item.total, currency)}
+                  </span>
+                  {item.originalPrice && item.originalPrice > item.price && (
+                    <span className="text-sm text-gray-500 line-through">
+                      {formatPrice(item.originalPrice * item.quantity, currency)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}

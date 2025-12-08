@@ -32,6 +32,7 @@ interface Product {
   compareAtPrice?: number;
   originalPrice?: number | null;
   globalDiscount?: number | null;
+  discountPercent?: number | null;
 }
 
 type ViewMode = 'list' | 'grid-2' | 'grid-3';
@@ -365,9 +366,16 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
           {/* Price */}
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <span className="text-2xl font-semibold text-blue-600 whitespace-nowrap">
-                {formatPrice(product.price || 0, currency || 'USD')}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-semibold text-blue-600 whitespace-nowrap">
+                  {formatPrice(product.price || 0, currency || 'USD')}
+                </span>
+                {product.discountPercent && product.discountPercent > 0 ? (
+                  <span className="text-sm font-semibold text-blue-600 whitespace-nowrap">
+                    -{product.discountPercent}%
+                  </span>
+                ) : null}
+              </div>
               {(product.originalPrice && product.originalPrice > product.price) || 
                (product.compareAtPrice && product.compareAtPrice > product.price) ? (
                 <span className="text-lg text-gray-500 line-through whitespace-nowrap">
@@ -574,9 +582,16 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         {/* Price + Cart Row */}
         <div className={`mt-2 flex items-center justify-between ${isCompact ? 'gap-2' : 'gap-4'}`}>
           <div className="flex flex-col">
-            <span className={`${isCompact ? 'text-lg' : 'text-2xl'} font-semibold text-gray-900`}>
-              {formatPrice(product.price || 0, currency || 'USD')}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`${isCompact ? 'text-lg' : 'text-2xl'} font-semibold text-gray-900`}>
+                {formatPrice(product.price || 0, currency || 'USD')}
+              </span>
+              {product.discountPercent && product.discountPercent > 0 ? (
+                <span className={`${isCompact ? 'text-xs' : 'text-sm'} font-semibold text-blue-600`}>
+                  -{product.discountPercent}%
+                </span>
+              ) : null}
+            </div>
             {(product.originalPrice && product.originalPrice > product.price) || 
              (product.compareAtPrice && product.compareAtPrice > product.price) ? (
               <span className={`${isCompact ? 'text-sm' : 'text-lg'} text-gray-500 line-through`}>

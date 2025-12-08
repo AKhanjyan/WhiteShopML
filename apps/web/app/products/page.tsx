@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
 import { Button, Card, Input } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { ProductCard } from '../../components/ProductCard';
@@ -91,9 +92,43 @@ async function getProducts(
     const response = await apiClient.get<ProductsResponse>('/api/v1/products', {
       params,
     });
+    
+    // Ensure response has required structure
+    if (!response) {
+      console.warn('⚠️ [PRODUCTS] Response is null or undefined');
+      return {
+        data: [],
+        meta: {
+          total: 0,
+          page: 1,
+          limit: 24,
+          totalPages: 0,
+        },
+      };
+    }
+    
+    // Ensure response has data and meta
+    if (!response.data || !Array.isArray(response.data)) {
+      console.warn('⚠️ [PRODUCTS] Response.data is missing or not an array');
+      return {
+        data: [],
+        meta: response.meta || {
+          total: 0,
+          page: 1,
+          limit: 24,
+          totalPages: 0,
+        },
+      };
+    }
+    
     return response;
-  } catch (error) {
-    console.error('Error fetching products:', error);
+  } catch (error: any) {
+    console.error('❌ [PRODUCTS] Error fetching products:', error);
+    console.error('❌ [PRODUCTS] Error details:', {
+      message: error?.message,
+      stack: error?.stack,
+      status: error?.status,
+    });
     return {
       data: [],
       meta: {
@@ -132,7 +167,8 @@ export default async function ProductsPage({
   const productsData = await getProducts(page, search, category, minPrice, maxPrice, colors, sizes, brand);
   
   // Parse selected colors and sizes
-  const selectedColors = colors ? colors.split(',').map(c => c.trim()) : [];
+  // Normalize colors to lowercase to match service response (case-insensitive matching)
+  const selectedColors = colors ? colors.split(',').map(c => c.trim().toLowerCase()) : [];
   const selectedSizes = sizes ? sizes.split(',').map(s => s.trim()) : [];
 
   // Helper function to build pagination URL
@@ -164,28 +200,30 @@ export default async function ProductsPage({
         {/* Left Sidebar - Filters (aligned with logo direction) */}
         <aside className="w-64 flex-shrink-0 hidden lg:block bg-gray-50 min-h-screen rounded-xl">
           <div className="sticky top-4 p-4 space-y-6">
-            <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
-            <ColorFilter 
-              category={category} 
-              search={search} 
-              minPrice={minPrice} 
-              maxPrice={maxPrice}
-              selectedColors={selectedColors}
-            />
-            <SizeFilter 
-              category={category} 
-              search={search} 
-              minPrice={minPrice} 
-              maxPrice={maxPrice}
-              selectedSizes={selectedSizes}
-            />
-            <BrandFilter 
-              category={category} 
-              search={search} 
-              minPrice={minPrice} 
-              maxPrice={maxPrice}
-              selectedBrand={brand}
-            />
+            <Suspense fallback={<div className="text-sm text-gray-500">Loading filters...</div>}>
+              <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
+              <ColorFilter 
+                category={category} 
+                search={search} 
+                minPrice={minPrice} 
+                maxPrice={maxPrice}
+                selectedColors={selectedColors}
+              />
+              <SizeFilter 
+                category={category} 
+                search={search} 
+                minPrice={minPrice} 
+                maxPrice={maxPrice}
+                selectedSizes={selectedSizes}
+              />
+              <BrandFilter 
+                category={category} 
+                search={search} 
+                minPrice={minPrice} 
+                maxPrice={maxPrice}
+                selectedBrand={brand}
+              />
+            </Suspense>
           </div>
         </aside>
 
@@ -194,28 +232,30 @@ export default async function ProductsPage({
             {/* Mobile Filter Drawer */}
             <div className="mb-6">
               <MobileFiltersDrawer triggerLabel="Filters" openEventName={MOBILE_FILTERS_EVENT}>
-                <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
-                <ColorFilter 
-                  category={category} 
-                  search={search} 
-                  minPrice={minPrice} 
-                  maxPrice={maxPrice}
-                  selectedColors={selectedColors}
-                />
-                <SizeFilter 
-                  category={category} 
-                  search={search} 
-                  minPrice={minPrice} 
-                  maxPrice={maxPrice}
-                  selectedSizes={selectedSizes}
-                />
-                <BrandFilter 
-                  category={category} 
-                  search={search} 
-                  minPrice={minPrice} 
-                  maxPrice={maxPrice}
-                  selectedBrand={brand}
-                />
+                <Suspense fallback={<div className="text-sm text-gray-500">Loading filters...</div>}>
+                  <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
+                  <ColorFilter 
+                    category={category} 
+                    search={search} 
+                    minPrice={minPrice} 
+                    maxPrice={maxPrice}
+                    selectedColors={selectedColors}
+                  />
+                  <SizeFilter 
+                    category={category} 
+                    search={search} 
+                    minPrice={minPrice} 
+                    maxPrice={maxPrice}
+                    selectedSizes={selectedSizes}
+                  />
+                  <BrandFilter 
+                    category={category} 
+                    search={search} 
+                    minPrice={minPrice} 
+                    maxPrice={maxPrice}
+                    selectedBrand={brand}
+                  />
+                </Suspense>
               </MobileFiltersDrawer>
             </div>
       
@@ -244,14 +284,38 @@ export default async function ProductsPage({
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">
-                  {search ? `No products found for "${search}"` : 'No products found.'}
-                </p>
-                <p className="text-gray-400 mt-2">
-                  {search 
-                    ? 'Try searching with different keywords.'
-                    : 'Please make sure the API server is running and the database is seeded.'}
-                </p>
+                <div className="max-w-md mx-auto">
+                  <p className="text-gray-500 text-lg font-medium mb-3">
+                    No products found
+                  </p>
+                  <div className="text-gray-400 text-sm space-y-1">
+                    {search && (
+                      <p>Search query: "{search}"</p>
+                    )}
+                    {selectedColors.length > 0 && (
+                      <p>Colors: {selectedColors.join(', ')}</p>
+                    )}
+                    {selectedSizes.length > 0 && (
+                      <p>Sizes: {selectedSizes.join(', ')}</p>
+                    )}
+                    {brand && (
+                      <p>Brand: {brand}</p>
+                    )}
+                    {(minPrice || maxPrice) && (
+                      <p>Price range: {minPrice || '0'} - {maxPrice || '∞'} AMD</p>
+                    )}
+                    {category && (
+                      <p>Category: {category}</p>
+                    )}
+                  </div>
+                  <p className="text-gray-400 mt-4 text-sm">
+                    {search 
+                      ? 'Try searching with different keywords or adjust your filters.'
+                      : (selectedColors.length > 0 || selectedSizes.length > 0 || brand || minPrice || maxPrice)
+                        ? 'Try adjusting your filters to see more results.'
+                        : 'Please make sure the API server is running and the database is seeded.'}
+                  </p>
+                </div>
               </div>
             )}
         </div>

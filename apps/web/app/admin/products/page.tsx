@@ -38,6 +38,32 @@ interface Category {
   parentId: string | null;
 }
 
+interface ProductVariant {
+  id?: string;
+  sku?: string;
+  price?: number | string;
+  compareAtPrice?: number | string;
+  stock?: number | string;
+  imageUrl?: string;
+  published?: boolean;
+  color?: string;
+  size?: string;
+  // Для обратной совместимости, если варианты приходят с options
+  options?: Array<{
+    attributeKey?: string;
+    key?: string;
+    value?: string;
+  }>;
+}
+
+interface FullProduct {
+  id: string;
+  media?: string[];
+  variants?: ProductVariant[];
+  primaryCategoryId?: string | null;
+  [key: string]: any;
+}
+
 export default function ProductsPage() {
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
@@ -52,6 +78,8 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('createdAt-desc');
+  const [brands, setBrands] = useState<Array<{ id: string; name: string; slug: string }>>([]);
+  const [showDeleteSection, setShowDeleteSection] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -65,6 +93,7 @@ export default function ProductsPage() {
   useEffect(() => {
     if (isLoggedIn && isAdmin) {
       fetchCategories();
+      fetchBrands();
     }
   }, [isLoggedIn, isAdmin]);
 
@@ -81,6 +110,15 @@ export default function ProductsPage() {
       setCategories(response.data || []);
     } catch (err) {
       console.error('❌ [ADMIN] Error fetching categories:', err);
+    }
+  };
+
+  const fetchBrands = async () => {
+    try {
+      const response = await apiClient.get<{ data: Array<{ id: string; name: string; slug: string }> }>('/api/v1/admin/brands');
+      setBrands(response.data || []);
+    } catch (err) {
+      console.error('❌ [ADMIN] Error fetching brands:', err);
     }
   };
 
@@ -171,54 +209,14 @@ export default function ProductsPage() {
     try {
       const newStatus = !currentStatus;
       
-      // Получаем полный продукт, чтобы сохранить все его данные, включая media и variants
-      let existingMedia: string[] = [];
-      let existingVariants: any[] = [];
-      try {
-        const fullProduct = await apiClient.get(`/api/v1/admin/products/${productId}`);
-        if (fullProduct.media && Array.isArray(fullProduct.media)) {
-          existingMedia = fullProduct.media;
-          console.log('📸 [ADMIN] Found existing media:', existingMedia);
-        }
-        if (fullProduct.variants && Array.isArray(fullProduct.variants)) {
-          // Преобразуем variants в формат, который ожидает API
-          existingVariants = fullProduct.variants.map((variant: any) => ({
-            sku: variant.sku || '',
-            price: variant.price?.toString() || '0',
-            compareAtPrice: variant.compareAtPrice?.toString() || '',
-            stock: variant.stock?.toString() || '0',
-            imageUrl: variant.imageUrl || '',
-            published: variant.published !== false,
-            color: variant.options?.find((opt: any) => opt.attributeKey === 'color' || opt.key === 'color')?.value || '',
-            size: variant.options?.find((opt: any) => opt.attributeKey === 'size' || opt.key === 'size')?.value || '',
-          }));
-          console.log('📦 [ADMIN] Found existing variants:', existingVariants.length);
-        }
-      } catch (fetchErr) {
-        console.warn('⚠️ [ADMIN] Could not fetch full product, using current product data:', fetchErr);
-        // Если не удалось получить полный продукт, используем данные из списка
-        const currentProduct = products.find(p => p.id === productId);
-        if (currentProduct?.image) {
-          existingMedia = [currentProduct.image];
-        }
-      }
-      
-      // Подготавливаем данные для обновления
-      const updateData: any = {
+      // При изменении только статуса published, отправляем только статус
+      // Это позволяет избежать проблем с валидацией вариантов (например, требование размеров)
+      // Варианты и другие данные останутся без изменений на сервере
+      const updateData = {
         published: newStatus,
       };
       
-      // Сохраняем существующие media, чтобы они не пропали
-      if (existingMedia.length > 0) {
-        updateData.media = existingMedia;
-        console.log('📸 [ADMIN] Preserving media:', existingMedia);
-      }
-      
-      // Сохраняем существующие variants, чтобы price и stock не пропали
-      if (existingVariants.length > 0) {
-        updateData.variants = existingVariants;
-        console.log('📦 [ADMIN] Preserving variants:', existingVariants.length);
-      }
+      console.log(`🔄 [ADMIN] Updating product status to ${newStatus ? 'published' : 'draft'}`);
       
       await apiClient.put(`/api/v1/admin/products/${productId}`, updateData);
       
@@ -235,6 +233,70 @@ export default function ProductsPage() {
     } catch (err: any) {
       console.error('❌ [ADMIN] Error updating product status:', err);
       alert(`Error updating product status: ${err.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string, categoryTitle: string) => {
+    if (!confirm(`Are you sure you want to delete category "${categoryTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/api/v1/admin/categories/${categoryId}`);
+      console.log('✅ [ADMIN] Category deleted successfully');
+      
+      // Refresh categories list
+      fetchCategories();
+      
+      alert('Category deleted successfully');
+    } catch (err: any) {
+      console.error('❌ [ADMIN] Error deleting category:', err);
+      
+      // Extract error message from ApiError response
+      let errorMessage = 'Unknown error occurred';
+      if (err.data?.detail) {
+        errorMessage = err.data.detail;
+      } else if (err.detail) {
+        errorMessage = err.detail;
+      } else if (err.message) {
+        errorMessage = err.message;
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      }
+      
+      alert(`Error deleting category:\n\n${errorMessage}`);
+    }
+  };
+
+  const handleDeleteBrand = async (brandId: string, brandName: string) => {
+    if (!confirm(`Are you sure you want to delete brand "${brandName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await apiClient.delete(`/api/v1/admin/brands/${brandId}`);
+      console.log('✅ [ADMIN] Brand deleted successfully');
+      
+      // Refresh brands list
+      fetchBrands();
+      
+      alert('Brand deleted successfully');
+    } catch (err: any) {
+      console.error('❌ [ADMIN] Error deleting brand:', err);
+      
+      // Extract error message from ApiError response
+      let errorMessage = 'Unknown error occurred';
+      if (err.data?.detail) {
+        errorMessage = err.data.detail;
+      } else if (err.detail) {
+        errorMessage = err.detail;
+      } else if (err.message) {
+        errorMessage = err.message;
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      }
+      
+      alert(`Error deleting brand:\n\n${errorMessage}`);
     }
   };
 
@@ -385,7 +447,7 @@ export default function ProductsPage() {
             <div className="flex gap-3 items-end">
               <div className="flex-1">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Min Price (AMD)
+                  Min Price (USD)
                 </label>
                 <input
                   type="number"
@@ -399,7 +461,7 @@ export default function ProductsPage() {
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Max Price (AMD)
+                  Max Price (USD)
                 </label>
                 <input
                   type="number"
@@ -431,7 +493,91 @@ export default function ProductsPage() {
             </div>
             {(minPrice || maxPrice) && (
               <div className="mt-2 text-xs text-gray-600">
-                Filtering by price range: {minPrice || '0'} - {maxPrice || '∞'} AMD
+                Filtering by price range: {minPrice || '0'} - {maxPrice || '∞'} USD
+              </div>
+            )}
+          </Card>
+
+          {/* Delete Categories and Brands Section */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-900">Manage Categories & Brands</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDeleteSection(!showDeleteSection)}
+              >
+                {showDeleteSection ? 'Hide' : 'Show'} Management
+              </Button>
+            </div>
+            
+            {showDeleteSection && (
+              <div className="space-y-6">
+                {/* Categories Section */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Categories</h4>
+                  {categories.length === 0 ? (
+                    <p className="text-sm text-gray-500 py-2">No categories found</p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {categories.map((category) => (
+                        <div
+                          key={category.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{category.title}</div>
+                            <div className="text-xs text-gray-500">{category.slug}</div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteCategory(category.id, category.title)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Brands Section */}
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Brands</h4>
+                  {brands.length === 0 ? (
+                    <p className="text-sm text-gray-500 py-2">No brands found</p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {brands.map((brand) => (
+                        <div
+                          key={brand.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{brand.name}</div>
+                            <div className="text-xs text-gray-500">{brand.slug}</div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteBrand(brand.id, brand.name)}
+                            className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Delete
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </Card>
@@ -513,9 +659,9 @@ export default function ProductsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {new Intl.NumberFormat('hy-AM', {
+                            {new Intl.NumberFormat('en-US', {
                               style: 'currency',
-                              currency: 'AMD',
+                              currency: 'USD',
                               minimumFractionDigits: 0,
                             }).format(product.price)}
                           </div>

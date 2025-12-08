@@ -87,14 +87,31 @@ export default function AnalyticsPage() {
       setAnalytics(response);
     } catch (err: any) {
       console.error('❌ [ADMIN] Error fetching analytics:', err);
-      alert(`Error loading analytics: ${err.message || 'Unknown error'}`);
+      
+      // Extract meaningful error message
+      let errorMessage = 'Չհաջողվեց բեռնել analytics տվյալները';
+      
+      if (err.message) {
+        // If error message contains HTML, it's likely a 404 page
+        if (err.message.includes('<!DOCTYPE') || err.message.includes('<html')) {
+          errorMessage = 'Analytics API route-ը չի գտնվել: Խնդրում ենք ստուգել, որ API route-ը գոյություն ունի';
+        } else if (err.message.includes('Expected JSON')) {
+          errorMessage = 'API-ն վերադարձրել է սխալ response: Խնդրում ենք ստուգել server logs';
+        } else {
+          errorMessage = err.message;
+        }
+      } else if (err.data?.detail) {
+        errorMessage = err.data.detail;
+      }
+      
+      alert(`Սխալ: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'AMD') => {
-    return new Intl.NumberFormat('hy-AM', {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,

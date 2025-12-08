@@ -541,7 +541,7 @@ export function Header() {
                 </svg>
                 <span className="font-medium">{contactData.phone}</span>
               </div>
-              <div className="flex items-center gap-3 text-gray-600 sm:border-l sm:border-gray-200 sm:pl-3">
+              <div className="flex items-center gap-3 text-gray-600">
                 <a
                   href={socialLinks.instagram || '#'}
                   target="_blank"

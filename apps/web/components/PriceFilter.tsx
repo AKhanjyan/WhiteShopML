@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card } from '@shop/ui';
 import { apiClient } from '../lib/api-client';
 import { getStoredLanguage } from '../lib/language';
@@ -22,6 +22,7 @@ interface PriceRange {
 
 export function PriceFilter({ currentMinPrice, currentMaxPrice, category, search }: PriceFilterProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [priceRange, setPriceRange] = useState<PriceRange>({ min: 0, max: 100000, stepSize: null });
   const [minPrice, setMinPrice] = useState(currentMinPrice ? parseFloat(currentMinPrice) : 0);
   const [maxPrice, setMaxPrice] = useState(currentMaxPrice ? parseFloat(currentMaxPrice) : 100000);
@@ -154,22 +155,23 @@ export function PriceFilter({ currentMinPrice, currentMaxPrice, category, search
       const shouldApplyMax = maxPrice !== priceRange.max;
       
       if (shouldApplyMin || shouldApplyMax) {
-        const params = new URLSearchParams();
-        if (search) params.set('search', search);
-        if (category) params.set('category', category);
-        if (shouldApplyMin) params.set('minPrice', minPrice.toString());
-        if (shouldApplyMax) params.set('maxPrice', maxPrice.toString());
+        // Ստեղծում ենք նոր URLSearchParams URL-ի հիման վրա, որպեսզի պահպանենք բոլոր params-ները
+        const params = new URLSearchParams(searchParams.toString());
         
-        // Preserve existing filter params from URL
-        if (typeof window !== 'undefined') {
-          const urlParams = new URLSearchParams(window.location.search);
-          const colors = urlParams.get('colors');
-          const sizes = urlParams.get('sizes');
-          const brand = urlParams.get('brand');
-          if (colors) params.set('colors', colors);
-          if (sizes) params.set('sizes', sizes);
-          if (brand) params.set('brand', brand);
+        if (shouldApplyMin) {
+          params.set('minPrice', minPrice.toString());
+        } else {
+          params.delete('minPrice');
         }
+        
+        if (shouldApplyMax) {
+          params.set('maxPrice', maxPrice.toString());
+        } else {
+          params.delete('maxPrice');
+        }
+        
+        // Reset page to 1 when filters change
+        params.delete('page');
         
         // Use a small delay to debounce rapid changes
         const timeoutId = setTimeout(() => {
@@ -179,7 +181,7 @@ export function PriceFilter({ currentMinPrice, currentMaxPrice, category, search
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [isDragging, minPrice, maxPrice, priceRange, search, category, router]);
+  }, [isDragging, minPrice, maxPrice, priceRange, searchParams, router]);
 
   // Используем функцию форматирования из currency.ts для консистентности
   const formatPrice = (price: number) => {

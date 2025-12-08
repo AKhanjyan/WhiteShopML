@@ -352,7 +352,7 @@ export default function PriceFilterSettingsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Min Price (AMD)
+                        Min Price (USD)
                       </label>
                       <Input
                         type="number"
@@ -370,7 +370,7 @@ export default function PriceFilterSettingsPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max Price (AMD)
+                        Max Price (USD)
                       </label>
                       <Input
                         type="number"
@@ -388,7 +388,7 @@ export default function PriceFilterSettingsPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Step Size (AMD)
+                        Step Size (USD)
                       </label>
                       <Input
                         type="number"

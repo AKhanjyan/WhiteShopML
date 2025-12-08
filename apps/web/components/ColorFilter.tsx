@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card } from '@shop/ui';
 import { apiClient } from '../lib/api-client';
 import { getStoredLanguage } from '../lib/language';
@@ -66,6 +66,7 @@ const getColorHex = (colorName: string): string => {
 
 export function ColorFilter({ category, search, minPrice, maxPrice, selectedColors = [] }: ColorFilterProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [colors, setColors] = useState<ColorOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>(selectedColors);
@@ -115,24 +116,18 @@ export function ColorFilter({ category, search, minPrice, maxPrice, selectedColo
   };
 
   const applyFilters = (colorsToApply: string[]) => {
-    const params = new URLSearchParams();
+    // Ստեղծում ենք նոր URLSearchParams URL-ի հիման վրա, որպեսզի պահպանենք բոլոր params-ները
+    const params = new URLSearchParams(searchParams.toString());
     
-    if (search) params.set('search', search);
-    if (category) params.set('category', category);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
+    // Թարմացնում ենք colors պարամետրը
     if (colorsToApply.length > 0) {
       params.set('colors', colorsToApply.join(','));
+    } else {
+      params.delete('colors');
     }
-
-    // Preserve existing filter params from URL
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sizes = urlParams.get('sizes');
-      const brand = urlParams.get('brand');
-      if (sizes) params.set('sizes', sizes);
-      if (brand) params.set('brand', brand);
-    }
+    
+    // Reset page to 1 when filters change
+    params.delete('page');
 
     router.push(`/products?${params.toString()}`);
   };
@@ -156,29 +151,49 @@ export function ColorFilter({ category, search, minPrice, maxPrice, selectedColo
       ) : (
         <div className="space-y-2 max-h-64 overflow-y-auto">
           {colors.map((color) => {
-          const isSelected = selected.includes(color.value);
-          const colorHex = getColorHex(color.label);
+            const isSelected = selected.includes(color.value);
+            const colorHex = getColorHex(color.label);
 
-          return (
-            <button
-              key={color.value}
-              onClick={() => handleColorToggle(color.value)}
-              className="w-full flex items-center justify-between py-2 px-1 hover:bg-gray-50 rounded transition-colors group"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"
-                  style={{ backgroundColor: colorHex }}
-                  aria-label={color.label}
-                />
-                <span className="text-sm text-gray-900 group-hover:text-gray-700">{color.label}</span>
-              </div>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                {color.count}
-              </span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={color.value}
+                type="button"
+                onClick={() => handleColorToggle(color.value)}
+                aria-pressed={isSelected}
+                className={`w-full flex items-center justify-between py-2 px-1 rounded transition-colors group ${
+                  isSelected
+                    ? 'bg-blue-50 hover:bg-blue-100 border border-blue-200'
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-4 h-4 rounded-full border flex-shrink-0 ${
+                      isSelected ? 'border-blue-500 border-2' : 'border-gray-300'
+                    }`}
+                    style={{ backgroundColor: colorHex }}
+                    aria-label={color.label}
+                  />
+                  <span
+                    className={`text-sm group-hover:text-gray-700 ${
+                      isSelected ? 'text-blue-900 font-medium' : 'text-gray-900'
+                    }`}
+                  >
+                    {color.label}
+                  </span>
+                </div>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${
+                    isSelected
+                      ? 'text-blue-700 bg-blue-100'
+                      : 'text-gray-500 bg-gray-100'
+                  }`}
+                >
+                  {color.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </Card>

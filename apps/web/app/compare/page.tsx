@@ -16,7 +16,9 @@ interface Product {
   slug: string;
   title: string;
   price: number;
+  originalPrice: number | null;
   compareAtPrice: number | null;
+  discountPercent: number | null;
   image: string | null;
   inStock: boolean;
   brand: {
@@ -348,12 +350,17 @@ export default function ComparePage() {
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4 text-center">
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center justify-center gap-3">
                         <p className="text-lg font-bold text-gray-900 select-none">
                           {formatPrice(product.price, currency)}
                         </p>
-                        {product.compareAtPrice && product.compareAtPrice > product.price && (
-                          <p className="text-sm text-gray-400 line-through select-none">
+                        {(product.originalPrice && product.originalPrice > product.price) && (
+                          <p className="text-sm text-gray-500 line-through select-none">
+                            {formatPrice(product.originalPrice, currency)}
+                          </p>
+                        )}
+                        {!product.originalPrice && product.compareAtPrice && product.compareAtPrice > product.price && (
+                          <p className="text-sm text-gray-500 line-through select-none">
                             {formatPrice(product.compareAtPrice, currency)}
                           </p>
                         )}

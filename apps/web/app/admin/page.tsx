@@ -236,8 +236,8 @@ export default function AdminPanel() {
     }
   }, [pathname]);
 
-  const formatCurrency = (amount: number, currency: string = 'AMD') => {
-    return new Intl.NumberFormat('hy-AM', {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
@@ -494,7 +494,7 @@ export default function AdminPanel() {
                   <div className="animate-pulse h-8 w-24 bg-gray-200 rounded mt-1"></div>
                 ) : (
                   <p className="text-2xl font-bold text-gray-900 mt-1">
-                    {stats ? formatCurrency(stats.revenue.total, stats.revenue.currency) : '0 AMD'}
+                    {stats ? formatCurrency(stats.revenue.total, stats.revenue.currency) : '0 USD'}
                   </p>
                 )}
               </div>
@@ -627,7 +627,7 @@ export default function AdminPanel() {
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-semibold text-gray-900">
-                        {formatCurrency(product.totalRevenue, 'AMD')}
+                        {formatCurrency(product.totalRevenue, 'USD')}
                       </p>
                     </div>
                   </div>
@@ -683,7 +683,7 @@ export default function AdminPanel() {
                           <p className="text-sm font-medium text-gray-900">{user.name}</p>
                           <p className="text-xs text-gray-600">{user.email || user.phone || 'N/A'}</p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {user.orderCount} orders • {formatCurrency(user.totalSpent, 'AMD')}
+                            {user.orderCount} orders • {formatCurrency(user.totalSpent, 'USD')}
                           </p>
                         </div>
                       </div>

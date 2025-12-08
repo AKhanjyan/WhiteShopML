@@ -2,9 +2,13 @@
  * API Client
  * 
  * Client for making requests to the backend API
+ * 
+ * In Next.js, when API routes are in the same app, we use relative paths.
+ * If NEXT_PUBLIC_API_URL is set, use it (for external API).
+ * Otherwise, use empty string to make relative requests to Next.js API routes.
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const AUTH_TOKEN_KEY = 'auth_token';
 
 interface RequestOptions extends RequestInit {
@@ -57,7 +61,47 @@ class ApiClient {
     // Ensure endpoint starts with /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     
-    // Build base URL
+    // If baseUrl is empty (relative paths for Next.js API routes)
+    if (!this.baseUrl || this.baseUrl.trim() === '') {
+      // Check if we're on the server (Node.js environment)
+      const isServer = typeof window === 'undefined';
+      
+      // On server, we need an absolute URL
+      if (isServer) {
+        // Try to get the base URL from environment variable or construct it
+        let serverUrl = process.env.NEXT_PUBLIC_APP_URL;
+        if (!serverUrl) {
+          if (process.env.VERCEL_URL) {
+            serverUrl = `https://${process.env.VERCEL_URL}`;
+          } else {
+            serverUrl = 'http://localhost:3000';
+          }
+        }
+        
+        let url = `${serverUrl}${normalizedEndpoint}`;
+        if (params && Object.keys(params).length > 0) {
+          const searchParams = Object.entries(params)
+            .filter(([_, value]) => value !== undefined && value !== null)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+            .join('&');
+          url = `${url}${url.includes('?') ? '&' : '?'}${searchParams}`;
+        }
+        return url;
+      }
+      
+      // On client, use relative URL
+      let url = normalizedEndpoint;
+      if (params && Object.keys(params).length > 0) {
+        const searchParams = Object.entries(params)
+          .filter(([_, value]) => value !== undefined && value !== null)
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
+          .join('&');
+        url = `${url}${url.includes('?') ? '&' : '?'}${searchParams}`;
+      }
+      return url;
+    }
+    
+    // Build base URL for absolute URLs
     let baseUrl = this.baseUrl;
     if (!baseUrl.endsWith('/')) {
       baseUrl = baseUrl.replace(/\/+$/, '');
@@ -197,20 +241,24 @@ class ApiClient {
                                   networkError.message?.includes('Network request failed');
       
       if (isConnectionRefused) {
-        const errorMessage = `⚠️ API սերվերը հասանելի չէ!\n\n` +
-          `Չհաջողվեց միանալ ${this.baseUrl}\n\n` +
-          `Լուծում:\n` +
-          `1. Համոզվեք, որ API սերվերը գործարկված է\n` +
-          `2. Գործարկեք սերվերը հրամանով: npm run dev:api (նախագծի արմատից)\n` +
-          `   կամ: cd apps/api && npm run dev\n` +
-          `3. Ստուգեք, որ ${this.baseUrl.split(':').pop() || '3001'} պորտը զբաղված չէ այլ գործընթացով\n\n` +
-          `Հարցման URL: ${url}`;
+        const errorMessage = this.baseUrl 
+          ? `⚠️ API սերվերը հասանելի չէ!\n\n` +
+            `Չհաջողվեց միանալ ${this.baseUrl}\n\n` +
+            `Լուծում:\n` +
+            `1. Համոզվեք, որ API սերվերը գործարկված է\n` +
+            `2. Ստուգեք, որ ${this.baseUrl.split(':').pop() || 'port'} պորտը զբաղված չէ այլ գործընթացով\n\n` +
+            `Հարցման URL: ${url}`
+          : `⚠️ API route-ը հասանելի չէ!\n\n` +
+            `Չհաջողվեց միանալ Next.js API route-ին: ${url}\n\n` +
+            `Լուծում:\n` +
+            `1. Համոզվեք, որ Next.js dev server-ը գործարկված է (npm run dev)\n` +
+            `2. Ստուգեք, որ API route-ը գոյություն ունի: ${url}\n\n`;
         
         console.error('❌ [API CLIENT]', errorMessage);
         throw new Error(errorMessage);
       }
       
-      throw new Error(`Ցանցային սխալ: Չհաջողվեց միանալ API-ին ${url}. ${networkError.message || 'Խնդրում ենք ստուգել, արդյոք API սերվերը գործարկված է:'}`);
+      throw new Error(`Ցանցային սխալ: Չհաջողվեց միանալ API-ին ${url}. ${networkError.message || 'Խնդրում ենք ստուգել, արդյոք Next.js server-ը գործարկված է:'}`);
     }
 
     if (!response.ok) {
@@ -274,7 +322,11 @@ class ApiClient {
     }
 
     try {
-      const contentType = response.headers.get('content-type');
+      if (!response) {
+        throw new Error('Response is undefined');
+      }
+
+      const contentType = response.headers?.get('content-type');
       console.log('🌐 [API CLIENT] Response content-type:', contentType);
       
       if (!contentType || !contentType.includes('application/json')) {
@@ -282,16 +334,23 @@ class ApiClient {
         console.error('❌ [API CLIENT] GET Non-JSON response:', {
           contentType,
           status: response.status,
-          text: text.substring(0, 200), // First 200 chars
+          text: text?.substring(0, 200) || '', // First 200 chars
         });
         throw new Error(`Expected JSON response but got ${contentType}. Status: ${response.status}`);
       }
       
       const jsonData = await response.json();
       console.log('✅ [API CLIENT] GET Response parsed successfully');
+      
+      if (!jsonData) {
+        console.warn('⚠️ [API CLIENT] Response data is null or undefined');
+        return null as T;
+      }
+      
       return jsonData;
     } catch (parseError: any) {
       console.error('❌ [API CLIENT] GET JSON parse error:', parseError);
+      console.error('❌ [API CLIENT] Parse error stack:', parseError.stack);
       if (parseError.message && parseError.message.includes('Expected JSON')) {
         throw parseError;
       }
@@ -367,7 +426,10 @@ class ApiClient {
       // Handle network errors, URL construction errors, etc.
       if (error instanceof TypeError && error.message.includes('fetch')) {
         console.error('❌ [API CLIENT] Network error:', error);
-        throw new Error(`Network error: Unable to connect to API. Please check if the API server is running at ${this.baseUrl}`);
+        const errorMsg = this.baseUrl
+          ? `Network error: Unable to connect to API. Please check if the API server is running at ${this.baseUrl}`
+          : `Network error: Unable to connect to Next.js API routes. Please check if the Next.js server is running.`;
+        throw new Error(errorMsg);
       }
       
       // Re-throw if it's already our custom ApiError
@@ -389,12 +451,16 @@ class ApiClient {
   async put<T>(endpoint: string, data?: unknown, options?: RequestOptions): Promise<T> {
     const url = this.buildUrl(endpoint, options?.params);
     
+    console.log('📤 [API CLIENT] PUT request:', { url, endpoint, hasData: !!data });
+    
     const response = await fetch(url, {
       method: 'PUT',
       headers: this.getHeaders(options),
       body: data ? JSON.stringify(data) : undefined,
       ...options,
     });
+
+    console.log('📥 [API CLIENT] PUT response status:', response.status, response.statusText);
 
     if (!response.ok) {
       let errorText = '';
@@ -409,20 +475,47 @@ class ApiClient {
           try {
             errorData = JSON.parse(errorText);
             if (this.shouldLogError(response.status)) {
-              console.error('❌ [API CLIENT] PUT Error response (JSON):', errorData);
+              console.error('❌ [API CLIENT] PUT Error response (JSON):', {
+                url,
+                status: response.status,
+                statusText: response.statusText,
+                error: {
+                  type: errorData?.type,
+                  title: errorData?.title,
+                  detail: errorData?.detail,
+                  message: errorData?.message,
+                  status: errorData?.status,
+                  instance: errorData?.instance,
+                  fullError: errorData,
+                },
+              });
             }
           } catch (parseErr) {
             // If JSON parse fails, use text as is
             if (this.shouldLogError(response.status)) {
-              console.error('❌ [API CLIENT] PUT Error response (text):', errorText);
+              console.error('❌ [API CLIENT] PUT Error response (text):', {
+                url,
+                status: response.status,
+                statusText: response.statusText,
+                errorText,
+              });
             }
           }
         } else if (errorText && this.shouldLogError(response.status)) {
-          console.error('❌ [API CLIENT] PUT Error response (text):', errorText);
+          console.error('❌ [API CLIENT] PUT Error response (text):', {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            errorText,
+          });
         }
       } catch (e) {
         if (this.shouldLogError(response.status)) {
-          console.error('❌ [API CLIENT] Failed to read error response:', e);
+          console.error('❌ [API CLIENT] Failed to read error response:', {
+            url,
+            status: response.status,
+            error: e,
+          });
         }
       }
       
@@ -432,9 +525,15 @@ class ApiClient {
     }
 
     try {
-      return await response.json();
+      const jsonData = await response.json();
+      console.log('✅ [API CLIENT] PUT Response parsed successfully');
+      return jsonData;
     } catch (parseError) {
-      console.error('❌ [API CLIENT] PUT JSON parse error:', parseError);
+      console.error('❌ [API CLIENT] PUT JSON parse error:', {
+        url,
+        status: response.status,
+        error: parseError,
+      });
       throw new Error(`Failed to parse response: ${parseError}`);
     }
   }

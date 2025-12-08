@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card } from '@shop/ui';
 import { apiClient } from '../lib/api-client';
 import { getStoredLanguage } from '../lib/language';
@@ -23,6 +23,7 @@ const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
 export function SizeFilter({ category, search, minPrice, maxPrice, selectedSizes = [] }: SizeFilterProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sizes, setSizes] = useState<SizeOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>(selectedSizes);
@@ -72,24 +73,18 @@ export function SizeFilter({ category, search, minPrice, maxPrice, selectedSizes
   };
 
   const applyFilters = (sizesToApply: string[]) => {
-    const params = new URLSearchParams();
+    // Ստեղծում ենք նոր URLSearchParams URL-ի հիման վրա, որպեսզի պահպանենք բոլոր params-ները
+    const params = new URLSearchParams(searchParams.toString());
     
-    if (search) params.set('search', search);
-    if (category) params.set('category', category);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
+    // Թարմացնում ենք sizes պարամետրը
     if (sizesToApply.length > 0) {
       params.set('sizes', sizesToApply.join(','));
+    } else {
+      params.delete('sizes');
     }
-
-    // Preserve existing filter params from URL
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const colors = urlParams.get('colors');
-      const brand = urlParams.get('brand');
-      if (colors) params.set('colors', colors);
-      if (brand) params.set('brand', brand);
-    }
+    
+    // Reset page to 1 when filters change
+    params.delete('page');
 
     router.push(`/products?${params.toString()}`);
   };

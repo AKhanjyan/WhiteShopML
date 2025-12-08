@@ -93,8 +93,8 @@ export default function OrdersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, isAdmin, page, statusFilter, paymentStatusFilter]);
 
-  const formatCurrency = (amount: number, currency: string = 'AMD') => {
-    return new Intl.NumberFormat('hy-AM', {
+  const formatCurrency = (amount: number, currency: string = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,

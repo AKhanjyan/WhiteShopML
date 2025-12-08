@@ -842,16 +842,16 @@ export default function QuickSettingsPage() {
                                 {currentDiscount > 0 && originalPrice > 0 ? (
                                   <>
                                     <span className="text-xs font-semibold text-blue-600 select-none">
-                                      {new Intl.NumberFormat('hy-AM', {
+                                      {new Intl.NumberFormat('en-US', {
                                         style: 'currency',
-                                        currency: 'AMD',
+                                        currency: 'USD',
                                         minimumFractionDigits: 0,
                                       }).format(discountedPrice)}
                                     </span>
                                     <span className="text-xs text-gray-400 line-through select-none">
-                                      {new Intl.NumberFormat('hy-AM', {
+                                      {new Intl.NumberFormat('en-US', {
                                         style: 'currency',
-                                        currency: 'AMD',
+                                        currency: 'USD',
                                         minimumFractionDigits: 0,
                                       }).format(originalPrice)}
                                     </span>
@@ -861,9 +861,9 @@ export default function QuickSettingsPage() {
                                   </>
                                 ) : (
                                   <span className="text-xs text-gray-500 select-none">
-                                    {originalPrice > 0 ? new Intl.NumberFormat('hy-AM', {
+                                    {originalPrice > 0 ? new Intl.NumberFormat('en-US', {
                                       style: 'currency',
-                                      currency: 'AMD',
+                                      currency: 'USD',
                                       minimumFractionDigits: 0,
                                     }).format(originalPrice) : 'N/A'}
                                   </span>

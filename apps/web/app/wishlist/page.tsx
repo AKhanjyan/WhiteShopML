@@ -16,7 +16,9 @@ interface Product {
   slug: string;
   title: string;
   price: number;
+  originalPrice: number | null;
   compareAtPrice: number | null;
+  discountPercent: number | null;
   image: string | null;
   inStock: boolean;
   brand: {
@@ -265,12 +267,17 @@ export default function WishlistPage() {
 
                 {/* Unit Price */}
                 <div className="md:col-span-2 flex items-center justify-center md:justify-start">
-                  <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
                     <span className="text-base font-semibold text-blue-600">
                       {formatPrice(product.price, currency)}
                     </span>
-                    {product.compareAtPrice && product.compareAtPrice > product.price && (
-                      <span className="text-sm text-gray-400 line-through">
+                    {(product.originalPrice && product.originalPrice > product.price) && (
+                      <span className="text-sm text-gray-500 line-through">
+                        {formatPrice(product.originalPrice, currency)}
+                      </span>
+                    )}
+                    {!product.originalPrice && product.compareAtPrice && product.compareAtPrice > product.price && (
+                      <span className="text-sm text-gray-500 line-through">
                         {formatPrice(product.compareAtPrice, currency)}
                       </span>
                     )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, Input } from '@shop/ui';
 import { apiClient } from '../lib/api-client';
 import { getStoredLanguage } from '../lib/language';
@@ -22,6 +22,7 @@ interface BrandOption {
 
 export function BrandFilter({ category, search, minPrice, maxPrice, selectedBrand }: BrandFilterProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [filteredBrands, setFilteredBrands] = useState<BrandOption[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -89,28 +90,18 @@ export function BrandFilter({ category, search, minPrice, maxPrice, selectedBran
   };
 
   const handleBrandSelect = (brandId: string) => {
-    const params = new URLSearchParams();
-    
-    if (search) params.set('search', search);
-    if (category) params.set('category', category);
-    if (minPrice) params.set('minPrice', minPrice);
-    if (maxPrice) params.set('maxPrice', maxPrice);
+    // Ստեղծում ենք նոր URLSearchParams URL-ի հիման վրա, որպեսզի պահպանենք բոլոր params-ները
+    const params = new URLSearchParams(searchParams.toString());
     
     if (selectedBrand === brandId) {
       // Deselect if already selected
-      // Don't add brand param
+      params.delete('brand');
     } else {
       params.set('brand', brandId);
     }
-
-    // Preserve existing filter params from URL
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const colors = urlParams.get('colors');
-      const sizes = urlParams.get('sizes');
-      if (colors) params.set('colors', colors);
-      if (sizes) params.set('sizes', sizes);
-    }
+    
+    // Reset page to 1 when filters change
+    params.delete('page');
 
     router.push(`/products?${params.toString()}`);
   };
