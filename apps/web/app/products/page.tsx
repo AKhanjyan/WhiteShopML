@@ -41,7 +41,7 @@ interface ProductsResponse {
 
 /**
  * Մատչելի API-ից բերում է ապրանքների ցանկը՝ կիրառելով բոլոր ֆիլտրերը։
- * Server-side-ում օգտագործում է Next.js-ի ներկառուցված fetch-ը, որպեսզի ավտոմատ կառուցի ճիշտ URL-ը։
+ * Fixed for Vercel production: always uses NEXT_PUBLIC_APP_URL
  */
 async function getProducts(
   page: number = 1,
@@ -60,72 +60,36 @@ async function getProducts(
       limit: '24',
       lang: language,
     };
-    
-    if (search && search.trim()) {
-      params.search = search.trim();
-    }
-    
-    if (category && category.trim()) {
-      params.category = category.trim();
-    }
-    
-    if (minPrice && minPrice.trim()) {
-      params.minPrice = minPrice.trim();
-    }
-    
-    if (maxPrice && maxPrice.trim()) {
-      params.maxPrice = maxPrice.trim();
+
+    if (search?.trim()) params.search = search.trim();
+    if (category?.trim()) params.category = category.trim();
+    if (minPrice?.trim()) params.minPrice = minPrice.trim();
+    if (maxPrice?.trim()) params.maxPrice = maxPrice.trim();
+    if (colors?.trim()) params.colors = colors.trim();
+    if (sizes?.trim()) params.sizes = sizes.trim();
+    if (brand?.trim()) params.brand = brand.trim();
+
+    const queryString = new URLSearchParams(params).toString();
+
+    // ⭐ PRODUCTION-SAFE FETCH (Works in Vercel SSR, RSC & SSG)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+    if (!baseUrl) {
+      throw new Error("❌ NEXT_PUBLIC_APP_URL is missing from environment variables.");
     }
 
-    if (colors && colors.trim()) {
-      params.colors = colors.trim();
+    const fetchResponse = await fetch(
+      `${baseUrl}/api/v1/products?${queryString}`,
+      { cache: "no-store" }
+    );
+
+    if (!fetchResponse.ok) {
+      throw new Error(`API request failed: ${fetchResponse.status}`);
     }
 
-    if (sizes && sizes.trim()) {
-      params.sizes = sizes.trim();
-    }
+    const response = await fetchResponse.json();
 
-    if (brand && brand.trim()) {
-      params.brand = brand.trim();
-    }
-    
-    // Server-side-ում օգտագործում ենք Next.js-ի fetch-ը, որը ավտոմատ կառուցում է ճիշտ URL-ը
-    const isServer = typeof window === 'undefined';
-    
-    let response: ProductsResponse;
-    
-    if (isServer) {
-      // Server-side: օգտագործում ենք Next.js-ի fetch-ը, որը ավտոմատ կառուցում է absolute URL-ը
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-      
-      const queryString = new URLSearchParams(params).toString();
-      const url = `${baseUrl}/api/v1/products?${queryString}`;
-      
-      console.log('🌐 [PRODUCTS] Server-side fetch:', url);
-      
-      const fetchResponse = await fetch(url, {
-        cache: 'no-store', // Disable caching for server components
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!fetchResponse.ok) {
-        throw new Error(`API request failed: ${fetchResponse.status} ${fetchResponse.statusText}`);
-      }
-      
-      response = await fetchResponse.json();
-    } else {
-      // Client-side: օգտագործում ենք apiClient-ը
-      response = await apiClient.get<ProductsResponse>('/api/v1/products', {
-        params,
-      });
-    }
-    
-    // Ensure response has required structure
-    if (!response) {
-      console.warn('⚠️ [PRODUCTS] Response is null or undefined');
+    if (!response?.data || !Array.isArray(response.data)) {
       return {
         data: [],
         meta: {
@@ -136,29 +100,11 @@ async function getProducts(
         },
       };
     }
-    
-    // Ensure response has data and meta
-    if (!response.data || !Array.isArray(response.data)) {
-      console.warn('⚠️ [PRODUCTS] Response.data is missing or not an array');
-      return {
-        data: [],
-        meta: response.meta || {
-          total: 0,
-          page: 1,
-          limit: 24,
-          totalPages: 0,
-        },
-      };
-    }
-    
+
     return response;
+
   } catch (error: any) {
     console.error('❌ [PRODUCTS] Error fetching products:', error);
-    console.error('❌ [PRODUCTS] Error details:', {
-      message: error?.message,
-      stack: error?.stack,
-      status: error?.status,
-    });
     return {
       data: [],
       meta: {
@@ -171,18 +117,16 @@ async function getProducts(
   }
 }
 
-
 /**
- * Ցուցադրում է ապրանքների գլխավոր էջը՝ ֆիլտրերով և գրաֆիկով։
+ * Products Page
  */
 export default async function ProductsPage({
   searchParams,
 }: {
   searchParams?: Promise<{ page?: string; search?: string; category?: string; minPrice?: string; maxPrice?: string; colors?: string; sizes?: string; brand?: string; sort?: string }>;
 }) {
-  // In Next.js 15, searchParams is always a Promise
   const resolvedSearchParams = searchParams ? await searchParams : {};
-  
+
   const page = parseInt(resolvedSearchParams?.page || '1', 10);
   const search = resolvedSearchParams?.search;
   const category = resolvedSearchParams?.category;
@@ -192,14 +136,12 @@ export default async function ProductsPage({
   const sizes = resolvedSearchParams?.sizes;
   const brand = resolvedSearchParams?.brand;
   const sort = resolvedSearchParams?.sort;
+
   const productsData = await getProducts(page, search, category, minPrice, maxPrice, colors, sizes, brand);
-  
-  // Parse selected colors and sizes
-  // Normalize colors to lowercase to match service response (case-insensitive matching)
+
   const selectedColors = colors ? colors.split(',').map(c => c.trim().toLowerCase()) : [];
   const selectedSizes = sizes ? sizes.split(',').map(s => s.trim()) : [];
 
-  // Helper function to build pagination URL
   const buildPaginationUrl = (pageNum: number) => {
     const params = new URLSearchParams();
     params.set('page', pageNum.toString());
@@ -217,135 +159,63 @@ export default async function ProductsPage({
   return (
     <div className="w-full">
       <div className={PAGE_CONTAINER}>
-        {/* Category Navigation */}
         <CategoryNavigation />
-        
-        {/* Header with Breadcrumb, View Mode, and Sort */}
         <ProductsHeader />
       </div>
 
       <div className={`${PAGE_CONTAINER} flex gap-8`}>
-        {/* Left Sidebar - Filters (aligned with logo direction) */}
         <aside className="w-64 flex-shrink-0 hidden lg:block bg-gray-50 min-h-screen rounded-xl">
           <div className="sticky top-4 p-4 space-y-6">
             <Suspense fallback={<div className="text-sm text-gray-500">Loading filters...</div>}>
               <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
-              <ColorFilter 
-                category={category} 
-                search={search} 
-                minPrice={minPrice} 
-                maxPrice={maxPrice}
-                selectedColors={selectedColors}
-              />
-              <SizeFilter 
-                category={category} 
-                search={search} 
-                minPrice={minPrice} 
-                maxPrice={maxPrice}
-                selectedSizes={selectedSizes}
-              />
-              <BrandFilter 
-                category={category} 
-                search={search} 
-                minPrice={minPrice} 
-                maxPrice={maxPrice}
-                selectedBrand={brand}
-              />
+              <ColorFilter category={category} search={search} minPrice={minPrice} maxPrice={maxPrice} selectedColors={selectedColors} />
+              <SizeFilter category={category} search={search} minPrice={minPrice} maxPrice={maxPrice} selectedSizes={selectedSizes} />
+              <BrandFilter category={category} search={search} minPrice={minPrice} maxPrice={maxPrice} selectedBrand={brand} />
             </Suspense>
           </div>
         </aside>
 
-        {/* Main Content - Products */}
         <div className="flex-1 min-w-0 py-4">
-            {/* Mobile Filter Drawer */}
-            <div className="mb-6">
-              <MobileFiltersDrawer triggerLabel="Filters" openEventName={MOBILE_FILTERS_EVENT}>
-                <Suspense fallback={<div className="text-sm text-gray-500">Loading filters...</div>}>
-                  <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
-                  <ColorFilter 
-                    category={category} 
-                    search={search} 
-                    minPrice={minPrice} 
-                    maxPrice={maxPrice}
-                    selectedColors={selectedColors}
-                  />
-                  <SizeFilter 
-                    category={category} 
-                    search={search} 
-                    minPrice={minPrice} 
-                    maxPrice={maxPrice}
-                    selectedSizes={selectedSizes}
-                  />
-                  <BrandFilter 
-                    category={category} 
-                    search={search} 
-                    minPrice={minPrice} 
-                    maxPrice={maxPrice}
-                    selectedBrand={brand}
-                  />
-                </Suspense>
-              </MobileFiltersDrawer>
-            </div>
-      
-            {productsData.data.length > 0 ? (
-              <>
-                <ProductsGrid products={productsData.data} sortBy={sort || 'default'} />
+          <div className="mb-6">
+            <MobileFiltersDrawer triggerLabel="Filters" openEventName={MOBILE_FILTERS_EVENT}>
+              <Suspense fallback={<div className="text-sm text-gray-500">Loading filters...</div>}>
+                <PriceFilter currentMinPrice={minPrice} currentMaxPrice={maxPrice} category={category} search={search} />
+                <ColorFilter category={category} search={search} minPrice={minPrice} maxPrice={maxPrice} selectedColors={selectedColors} />
+                <SizeFilter category={category} search={search} minPrice={minPrice} maxPrice={maxPrice} selectedSizes={selectedSizes} />
+                <BrandFilter category={category} search={search} minPrice={minPrice} maxPrice={maxPrice} selectedBrand={brand} />
+              </Suspense>
+            </MobileFiltersDrawer>
+          </div>
 
-                {/* Pagination */}
-                {productsData.meta.totalPages > 1 && (
-                  <div className="mt-8 flex justify-center gap-2">
-                    {page > 1 && (
-                      <Link href={buildPaginationUrl(page - 1)}>
-                        <Button variant="outline">Previous</Button>
-                      </Link>
-                    )}
-                    <span className="flex items-center px-4">
-                      Page {page} of {productsData.meta.totalPages}
-                    </span>
-                    {page < productsData.meta.totalPages && (
-                      <Link href={buildPaginationUrl(page + 1)}>
-                        <Button variant="outline">Next</Button>
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-center py-12">
-                <div className="max-w-md mx-auto">
-                  <p className="text-gray-500 text-lg font-medium mb-3">
-                    No products found
-                  </p>
-                  <div className="text-gray-400 text-sm space-y-1">
-                    {search && (
-                      <p>Search query: "{search}"</p>
-                    )}
-                    {selectedColors.length > 0 && (
-                      <p>Colors: {selectedColors.join(', ')}</p>
-                    )}
-                    {selectedSizes.length > 0 && (
-                      <p>Sizes: {selectedSizes.join(', ')}</p>
-                    )}
-                    {brand && (
-                      <p>Brand: {brand}</p>
-                    )}
-                    {(minPrice || maxPrice) && (
-                      <p>Price range: {minPrice || '0'} - {maxPrice || '∞'} AMD</p>
-                    )}
-                    {category && (
-                      <p>Category: {category}</p>
-                    )}
-                  </div>
-                  <p className="text-gray-400 mt-4 text-sm">
-                    {search 
-                      ? 'Try searching with different keywords or adjust your filters.'
-                      : (selectedColors.length > 0 || selectedSizes.length > 0 || brand || minPrice || maxPrice)
-                        ? 'Try adjusting your filters to see more results.'
-                        : 'Please make sure the API server is running and the database is seeded.'}
-                  </p>
+          {productsData.data.length > 0 ? (
+            <>
+              <ProductsGrid products={productsData.data} sortBy={sort || 'default'} />
+
+              {productsData.meta.totalPages > 1 && (
+                <div className="mt-8 flex justify-center gap-2">
+                  {page > 1 && (
+                    <Link href={buildPaginationUrl(page - 1)}>
+                      <Button variant="outline">Previous</Button>
+                    </Link>
+                  )}
+                  <span className="flex items-center px-4">
+                    Page {page} of {productsData.meta.totalPages}
+                  </span>
+                  {page < productsData.meta.totalPages && (
+                    <Link href={buildPaginationUrl(page + 1)}>
+                      <Button variant="outline">Next</Button>
+                    </Link>
+                  )}
                 </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <p className="text-gray-500 text-lg font-medium mb-3">No products found</p>
               </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
     </div>
