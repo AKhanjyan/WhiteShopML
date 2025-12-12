@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, MouseEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button, Input, Card } from '@shop/ui';
@@ -37,6 +37,52 @@ interface UserProfile {
   addresses?: Address[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+interface OrderItem {
+  variantId: string;
+  productTitle: string;
+  variantTitle: string;
+  sku: string;
+  quantity: number;
+  price: number;
+  total: number;
+  imageUrl?: string;
+  variantOptions?: Array<{
+    attributeKey?: string;
+    value?: string;
+  }>;
+}
+
+interface OrderDetails {
+  id: string;
+  number: string;
+  status: string;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  items: OrderItem[];
+  totals: {
+    subtotal: number;
+    discount: number;
+    shipping: number;
+    tax: number;
+    total: number;
+    currency: string;
+  };
+  customer?: {
+    email?: string;
+    phone?: string;
+  };
+  shippingAddress?: any;
+  shippingMethod: string;
+  trackingNumber?: string;
+  timeline?: Array<{
+    status: string;
+    timestamp: string;
+    note?: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 function ProfilePageContent() {
@@ -129,6 +175,11 @@ function ProfilePageContent() {
     limit: number;
     totalPages: number;
   } | null>(null);
+
+  // Order Details Modal
+  const [selectedOrder, setSelectedOrder] = useState<OrderDetails | null>(null);
+  const [orderDetailsLoading, setOrderDetailsLoading] = useState(false);
+  const [orderDetailsError, setOrderDetailsError] = useState<string | null>(null);
 
 
   // Redirect if not logged in
@@ -426,6 +477,60 @@ function ProfilePageContent() {
     }
   };
 
+  // Helper function to get color hex/rgb from color name
+  const getColorValue = (colorName: string): string => {
+    const colorMap: Record<string, string> = {
+      'beige': '#F5F5DC',
+      'black': '#000000',
+      'blue': '#0000FF',
+      'brown': '#A52A2A',
+      'gray': '#808080',
+      'grey': '#808080',
+      'green': '#008000',
+      'red': '#FF0000',
+      'white': '#FFFFFF',
+      'yellow': '#FFFF00',
+      'orange': '#FFA500',
+      'pink': '#FFC0CB',
+      'purple': '#800080',
+      'navy': '#000080',
+      'maroon': '#800000',
+      'olive': '#808000',
+      'teal': '#008080',
+      'cyan': '#00FFFF',
+      'magenta': '#FF00FF',
+      'lime': '#00FF00',
+      'silver': '#C0C0C0',
+      'gold': '#FFD700',
+    };
+    
+    const normalizedName = colorName.toLowerCase().trim();
+    return colorMap[normalizedName] || '#CCCCCC';
+  };
+
+  const loadOrderDetails = async (orderNumber: string) => {
+    try {
+      setOrderDetailsLoading(true);
+      setOrderDetailsError(null);
+      const data = await apiClient.get<OrderDetails>(`/api/v1/orders/${orderNumber}`);
+      setSelectedOrder(data);
+    } catch (err: any) {
+      console.error('Error loading order details:', err);
+      setOrderDetailsError(err.message || 'Failed to load order details');
+    } finally {
+      setOrderDetailsLoading(false);
+    }
+  };
+
+  const handleOrderClick = (orderNumber: string, e: MouseEvent<HTMLAnchorElement>) => {
+    // Only open modal on desktop (screen width >= 1024px)
+    if (window.innerWidth >= 1024) {
+      e.preventDefault();
+      loadOrderDetails(orderNumber);
+    }
+    // On mobile, let the Link navigate normally
+  };
+
 
 
   if (authLoading || loading) {
@@ -658,7 +763,8 @@ function ProfilePageContent() {
                       <Link
                         key={order.id}
                         href={`/orders/${order.number}`}
-                        className="block border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-md transition-all"
+                        onClick={(e) => handleOrderClick(order.number, e)}
+                        className="block border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer"
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
@@ -977,7 +1083,8 @@ function ProfilePageContent() {
                 <Link
                   key={order.id}
                   href={`/orders/${order.number}`}
-                  className="block border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-md transition-all"
+                  onClick={(e) => handleOrderClick(order.number, e)}
+                  className="block border border-gray-200 rounded-lg p-4 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -1077,6 +1184,209 @@ function ProfilePageContent() {
             </div>
           </form>
         </Card>
+      )}
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            onClick={() => setSelectedOrder(null)}
+          ></div>
+
+          {/* Modal */}
+          <div className="flex min-h-full items-center justify-center p-4">
+            <div className="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Order #{selectedOrder.number}</h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Placed on {new Date(selectedOrder.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 py-6">
+                {orderDetailsLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading order details...</p>
+                  </div>
+                ) : orderDetailsError ? (
+                  <div className="text-center py-12">
+                    <p className="text-red-600 mb-4">{orderDetailsError}</p>
+                    <Button onClick={() => setSelectedOrder(null)} variant="outline">Close</Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Order Details */}
+                    <div className="lg:col-span-2 space-y-6">
+                      {/* Status */}
+                      <Card className="p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Status</h3>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.status)}`}>
+                            {selectedOrder.status}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPaymentStatusColor(selectedOrder.paymentStatus)}`}>
+                            Payment: {selectedOrder.paymentStatus}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.fulfillmentStatus)}`}>
+                            Fulfillment: {selectedOrder.fulfillmentStatus}
+                          </span>
+                        </div>
+                      </Card>
+
+                      {/* Order Items */}
+                      <Card className="p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-6">Order Items</h3>
+                        <div className="space-y-4">
+                          {selectedOrder.items.map((item, index) => {
+                            const colorOption = item.variantOptions?.find(opt => opt.attributeKey === 'color');
+                            const sizeOption = item.variantOptions?.find(opt => opt.attributeKey === 'size');
+                            const color = colorOption?.value;
+                            const size = sizeOption?.value;
+                            
+                            return (
+                              <div key={index} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0">
+                                {item.imageUrl && (
+                                  <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                                    <img 
+                                      src={item.imageUrl} 
+                                      alt={item.productTitle}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <h4 className="text-lg font-semibold text-gray-900 mb-1">{item.productTitle}</h4>
+                                  {item.variantTitle && (
+                                    <p className="text-sm text-gray-600 mb-1">{item.variantTitle}</p>
+                                  )}
+                                  
+                                  {(color || size) && (
+                                    <div className="flex flex-wrap gap-3 mt-2 mb-2">
+                                      {color && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-medium text-gray-700">Color:</span>
+                                          <div className="flex items-center gap-2">
+                                            <div 
+                                              className="w-5 h-5 rounded-full border border-gray-300"
+                                              style={{ 
+                                                backgroundColor: getColorValue(color),
+                                              }}
+                                              title={color}
+                                            />
+                                            <span className="text-sm text-gray-900 capitalize">{color}</span>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {size && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-medium text-gray-700">Size:</span>
+                                          <span className="text-sm text-gray-900 uppercase">{size}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  <p className="text-sm text-gray-600">SKU: {item.sku}</p>
+                                  <p className="text-sm text-gray-600 mt-2">
+                                    Quantity: {item.quantity} × {formatPrice(item.price, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)} = {formatPrice(item.total, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+
+                      {/* Shipping Address */}
+                      {selectedOrder.shippingAddress && (
+                        <Card className="p-6">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Shipping Address</h3>
+                          <div className="text-gray-600">
+                            {selectedOrder.shippingAddress.firstName && selectedOrder.shippingAddress.lastName && (
+                              <p>{selectedOrder.shippingAddress.firstName} {selectedOrder.shippingAddress.lastName}</p>
+                            )}
+                            {selectedOrder.shippingAddress.addressLine1 && <p>{selectedOrder.shippingAddress.addressLine1}</p>}
+                            {selectedOrder.shippingAddress.addressLine2 && <p>{selectedOrder.shippingAddress.addressLine2}</p>}
+                            {selectedOrder.shippingAddress.city && (
+                              <p>
+                                {selectedOrder.shippingAddress.city}
+                                {selectedOrder.shippingAddress.postalCode && `, ${selectedOrder.shippingAddress.postalCode}`}
+                              </p>
+                            )}
+                            {selectedOrder.shippingAddress.countryCode && <p>{selectedOrder.shippingAddress.countryCode}</p>}
+                            {selectedOrder.shippingAddress.phone && <p className="mt-2">Phone: {selectedOrder.shippingAddress.phone}</p>}
+                          </div>
+                        </Card>
+                      )}
+                    </div>
+
+                    {/* Order Summary */}
+                    <div>
+                      <Card className="p-6 sticky top-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-6">Order Summary</h3>
+                        <div className="space-y-4 mb-6">
+                          {selectedOrder.totals ? (
+                            <>
+                              <div className="flex justify-between text-gray-600">
+                                <span>Subtotal</span>
+                                <span>{formatPrice(selectedOrder.totals.subtotal, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)}</span>
+                              </div>
+                              {selectedOrder.totals.discount > 0 && (
+                                <div className="flex justify-between text-gray-600">
+                                  <span>Discount</span>
+                                  <span>-{formatPrice(selectedOrder.totals.discount, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between text-gray-600">
+                                <span>Shipping</span>
+                                <span>{formatPrice(selectedOrder.totals.shipping, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)}</span>
+                              </div>
+                              <div className="flex justify-between text-gray-600">
+                                <span>Tax</span>
+                                <span>{formatPrice(selectedOrder.totals.tax, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)}</span>
+                              </div>
+                              <div className="border-t border-gray-200 pt-4">
+                                <div className="flex justify-between text-lg font-bold text-gray-900">
+                                  <span>Total</span>
+                                  <span>{formatPrice(selectedOrder.totals.total, (selectedOrder.totals.currency || 'AMD') as CurrencyCode)}</span>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-gray-600">Loading totals...</div>
+                          )}
+                        </div>
+
+                        <div className="space-y-3">
+                          <Link href="/products">
+                            <Button variant="primary" className="w-full">
+                              Continue Shopping
+                            </Button>
+                          </Link>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
         </div>
