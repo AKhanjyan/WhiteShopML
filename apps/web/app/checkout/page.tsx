@@ -44,6 +44,8 @@ interface Cart {
 
 // Validation schema with conditional shipping address
 const checkoutSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
   phone: z.string().min(1, 'Phone is required').regex(/^\+?[0-9]{8,15}$/, 'Invalid phone number'),
   shippingMethod: z.enum(['pickup', 'delivery'], {
@@ -165,7 +167,7 @@ const paymentMethods = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { isLoggedIn, isLoading } = useAuth();
+  const { isLoggedIn, isLoading, user } = useAuth();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -191,6 +193,8 @@ export default function CheckoutPage() {
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
+      firstName: '',
+      lastName: '',
       email: '',
       phone: '',
       shippingMethod: 'pickup',
@@ -237,31 +241,141 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     async function loadUserProfile() {
+      // Wait for auth to finish loading
+      if (isLoading) {
+        console.log('⏳ [CHECKOUT] Waiting for auth to load...');
+        return;
+      }
+
       if (isLoggedIn) {
+        console.log('👤 [CHECKOUT] User is logged in, loading profile data...');
+        
+        // First, try to use user data from auth context (faster, from localStorage)
+        if (user) {
+          console.log('📦 [CHECKOUT] Using user data from auth context:', {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phone: user.phone
+          });
+          
+          // Auto-fill form fields with user data from context
+          if (user.firstName) {
+            setValue('firstName', user.firstName);
+          }
+          if (user.lastName) {
+            setValue('lastName', user.lastName);
+          }
+          if (user.email) {
+            setValue('email', user.email);
+          }
+          if (user.phone) {
+            setValue('phone', user.phone);
+            setValue('shippingPhone', user.phone);
+          }
+        }
+        
+        // Then, try to load fresh data from API (more complete, may have updated data)
         try {
           const profile = await apiClient.get<{
             id: string;
             email?: string;
             phone?: string;
+            firstName?: string;
+            lastName?: string;
+            addresses?: Array<{
+              id: string;
+              firstName?: string;
+              lastName?: string;
+              addressLine1?: string;
+              addressLine2?: string;
+              city?: string;
+              state?: string;
+              postalCode?: string;
+              countryCode?: string;
+              phone?: string;
+              isDefault?: boolean;
+            }>;
           }>('/api/v1/users/profile');
           
+          console.log('✅ [CHECKOUT] Profile loaded from API:', {
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            email: profile.email,
+            phone: profile.phone,
+            addressesCount: profile.addresses?.length || 0
+          });
+          
+          // Update form fields with fresh API data (overwrites context data if different)
+          if (profile.firstName) {
+            setValue('firstName', profile.firstName);
+            console.log('📝 [CHECKOUT] Set firstName:', profile.firstName);
+          }
+          if (profile.lastName) {
+            setValue('lastName', profile.lastName);
+            console.log('📝 [CHECKOUT] Set lastName:', profile.lastName);
+          }
           if (profile.email) {
             setValue('email', profile.email);
+            console.log('📝 [CHECKOUT] Set email:', profile.email);
           }
           if (profile.phone) {
             setValue('phone', profile.phone);
             // Also set shipping phone if available
             setValue('shippingPhone', profile.phone);
+            console.log('📝 [CHECKOUT] Set phone:', profile.phone);
+          }
+          
+          // Auto-fill shipping address from saved addresses
+          if (profile.addresses && profile.addresses.length > 0) {
+            // Find default address, or use first address if no default
+            const defaultAddress = profile.addresses.find(addr => addr.isDefault) || profile.addresses[0];
+            
+            if (defaultAddress) {
+              console.log('🏠 [CHECKOUT] Auto-filling shipping address from saved address:', {
+                city: defaultAddress.city,
+                postalCode: defaultAddress.postalCode,
+                hasAddress: !!defaultAddress.addressLine1
+              });
+              
+              // Fill shipping address fields
+              if (defaultAddress.addressLine1) {
+                const fullAddress = defaultAddress.addressLine2 
+                  ? `${defaultAddress.addressLine1}, ${defaultAddress.addressLine2}`
+                  : defaultAddress.addressLine1;
+                setValue('shippingAddress', fullAddress);
+                console.log('📝 [CHECKOUT] Set shippingAddress:', fullAddress);
+              }
+              
+              if (defaultAddress.city) {
+                setValue('shippingCity', defaultAddress.city);
+                console.log('📝 [CHECKOUT] Set shippingCity:', defaultAddress.city);
+              }
+              
+              if (defaultAddress.postalCode) {
+                setValue('shippingPostalCode', defaultAddress.postalCode);
+                console.log('📝 [CHECKOUT] Set shippingPostalCode:', defaultAddress.postalCode);
+              }
+              
+              // Use address phone if available, otherwise use user phone
+              if (defaultAddress.phone) {
+                setValue('shippingPhone', defaultAddress.phone);
+                console.log('📝 [CHECKOUT] Set shippingPhone from address:', defaultAddress.phone);
+              }
+            }
           }
         } catch (error) {
-          console.error('Error loading user profile:', error);
-          // Error loading profile, user can still fill the form manually
+          console.error('❌ [CHECKOUT] Error loading user profile from API:', error);
+          console.log('ℹ️ [CHECKOUT] Using data from auth context instead');
+          // Error loading profile, but we already have data from context, so it's OK
         }
+      } else {
+        console.log('ℹ️ [CHECKOUT] User is not logged in, form will remain empty');
       }
     }
     
     loadUserProfile();
-  }, [isLoggedIn, setValue]);
+  }, [isLoggedIn, isLoading, user, setValue]);
 
   async function fetchCart() {
     try {
@@ -467,6 +581,8 @@ export default function CheckoutPage() {
 
       console.log('[Checkout] Submitting order:', {
         cartId: cartId,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         phone: data.phone,
         shippingMethod: data.shippingMethod,
@@ -493,6 +609,8 @@ export default function CheckoutPage() {
       }>('/api/v1/orders/checkout', {
         cartId: cartId,
         ...(items ? { items } : {}),
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         phone: data.phone,
         shippingMethod: data.shippingMethod,
@@ -565,7 +683,23 @@ export default function CheckoutPage() {
             <Card className="p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Contact Information</h2>
               <div className="space-y-4">
-                <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="First Name"
+                    type="text"
+                    {...register('firstName')}
+                    error={errors.firstName?.message}
+                    disabled={isSubmitting}
+                  />
+                  <Input
+                    label="Last Name"
+                    type="text"
+                    {...register('lastName')}
+                    error={errors.lastName?.message}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Email"
                     type="email"
@@ -573,8 +707,6 @@ export default function CheckoutPage() {
                     error={errors.email?.message}
                     disabled={isSubmitting}
                   />
-                </div>
-                <div>
                   <Input
                     label="Phone"
                     type="tel"

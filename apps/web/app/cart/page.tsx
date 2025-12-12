@@ -481,15 +481,15 @@ export default function CartPage() {
               </div>
 
               {/* Quantity */}
-              <div className="md:col-span-2 flex flex-col items-start justify-center md:flex-row md:items-center md:justify-center">
+              <div className="md:col-span-2 flex flex-col items-start md:items-center justify-center">
                 <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:hidden">
                   Quantity
                 </p>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center gap-2 w-full md:w-auto">
                   <button
                     onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                     disabled={updatingItems.has(item.id)}
-                    className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-9 h-9 flex-shrink-0 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Decrease quantity"
                   >
                     <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -506,13 +506,13 @@ export default function CartPage() {
                       handleUpdateQuantity(item.id, newQuantity);
                     }}
                     disabled={updatingItems.has(item.id)}
-                    className="w-16 h-8 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                    className="w-20 h-9 text-right border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 font-medium pl-2 pr-5"
                     title={item.variant.stock !== undefined ? `Մատչելի քանակը ${item.variant.stock} հատ է` : ''}
                   />
                   <button
                     onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                     disabled={updatingItems.has(item.id) || (item.variant.stock !== undefined && item.quantity >= item.variant.stock)}
-                    className="w-8 h-8 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-9 h-9 flex-shrink-0 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Increase quantity"
                     title={item.variant.stock !== undefined && item.quantity >= item.variant.stock ? `Մատչելի քանակը ${item.variant.stock} հատ է` : 'Ավելացնել քանակ'}
                   >
