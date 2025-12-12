@@ -129,8 +129,6 @@ function ProfilePageContent() {
     limit: number;
     totalPages: number;
   } | null>(null);
-  type OrderStatusField = 'status' | 'paymentStatus';
-  const [openStatusMenu, setOpenStatusMenu] = useState<{ orderId: string; field: OrderStatusField } | null>(null);
 
 
   // Redirect if not logged in
@@ -428,144 +426,6 @@ function ProfilePageContent() {
     }
   };
 
-  const ORDER_STATUS_OPTIONS = [
-    { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'processing', label: 'Processing' },
-    { value: 'shipped', label: 'Shipped' },
-    { value: 'delivered', label: 'Delivered' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' },
-  ];
-
-  const PAYMENT_STATUS_OPTIONS = [
-    { value: 'pending', label: 'Pending' },
-    { value: 'paid', label: 'Paid' },
-    { value: 'failed', label: 'Failed' },
-    { value: 'refunded', label: 'Refunded' },
-  ];
-
-  const handleStatusSelect = (orderId: string, field: OrderStatusField, value: string) => {
-    setOpenStatusMenu(null);
-
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId
-          ? {
-              ...order,
-              [field]: value,
-            }
-          : order
-      )
-    );
-
-    setDashboardData((prev) => {
-      if (!prev) {
-        return prev;
-      }
-      return {
-        ...prev,
-        recentOrders: prev.recentOrders.map((order) =>
-          order.id === orderId
-            ? {
-                ...order,
-                [field]: value,
-              }
-            : order
-        ),
-      };
-    });
-  };
-
-  useEffect(() => {
-    if (!openStatusMenu) {
-      return;
-    }
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('[data-status-menu-trigger]') && !target.closest('[data-status-menu]')) {
-        setOpenStatusMenu(null);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [openStatusMenu]);
-
-  const StatusBadgeSelector = ({
-    orderId,
-    field,
-    label,
-    currentValue,
-    options,
-  }: {
-    orderId: string;
-    field: OrderStatusField;
-    label: string;
-    currentValue: string;
-    options: Array<{ value: string; label: string }>;
-  }) => {
-    const isOpen = openStatusMenu?.orderId === orderId && openStatusMenu.field === field;
-    const badgeColors = field === 'status' ? getStatusColor(currentValue) : getPaymentStatusColor(currentValue);
-
-    return (
-      <div
-        className="relative"
-        data-status-menu-container
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }}
-      >
-        <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-0.5">{label}</p>
-        <button
-          type="button"
-          data-status-menu-trigger
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setOpenStatusMenu(isOpen ? null : { orderId, field });
-          }}
-          className="flex items-center gap-1"
-        >
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium capitalize cursor-pointer ${badgeColors}`}
-          >
-            {currentValue}
-          </span>
-          <svg className="w-4 h-4 text-gray-400" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        {isOpen && (
-          <div
-            data-status-menu
-            className="absolute z-10 mt-2 w-40 rounded-md border border-gray-200 bg-white shadow-lg"
-          >
-            {options.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  handleStatusSelect(orderId, field, option.value);
-                }}
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                  option.value === currentValue ? 'text-gray-900 font-medium' : 'text-gray-600'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
 
 
   if (authLoading || loading) {
@@ -785,10 +645,6 @@ function ProfilePageContent() {
                     View All
                   </Button>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">
-                  Note: the badge on the left is the overall order status, the one on the right is the payment status.
-                  Click any badge to choose a value from the dropdown.
-                </p>
                 {dashboardData.recentOrders.length === 0 ? (
                   <div className="text-center py-12">
                     <p className="text-gray-600 mb-4">You haven't placed any orders yet</p>
@@ -808,20 +664,18 @@ function ProfilePageContent() {
                           <div className="flex-1">
                             <div className="flex flex-wrap items-center gap-6 mb-2">
                               <h3 className="text-lg font-semibold text-gray-900">Order #{order.number}</h3>
-                              <StatusBadgeSelector
-                                orderId={order.id}
-                                field="status"
-                                label="Order Status"
-                                currentValue={order.status}
-                                options={ORDER_STATUS_OPTIONS}
-                              />
-                              <StatusBadgeSelector
-                                orderId={order.id}
-                                field="paymentStatus"
-                                label="Payment Status"
-                                currentValue={order.paymentStatus}
-                                options={PAYMENT_STATUS_OPTIONS}
-                              />
+                              <div>
+                                <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-0.5">Order Status</p>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(order.status)}`}>
+                                  {order.status}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-0.5">Payment Status</p>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getPaymentStatusColor(order.paymentStatus)}`}>
+                                  {order.paymentStatus}
+                                </span>
+                              </div>
                             </div>
                             <p className="text-sm text-gray-600">
                               {order.itemsCount} item{order.itemsCount !== 1 ? 's' : ''} • Placed on {new Date(order.createdAt).toLocaleDateString()}
@@ -967,35 +821,11 @@ function ProfilePageContent() {
                 <h3 className="font-semibold text-gray-900">
                   {editingAddress ? 'Edit Address' : 'Add New Address'}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="First Name"
-                    value={addressForm.firstName}
-                    onChange={(e) => setAddressForm({ ...addressForm, firstName: e.target.value })}
-                    required
-                  />
-                  <Input
-                    label="Last Name"
-                    value={addressForm.lastName}
-                    onChange={(e) => setAddressForm({ ...addressForm, lastName: e.target.value })}
-                    required
-                  />
-                </div>
-                <Input
-                  label="Company (Optional)"
-                  value={addressForm.company}
-                  onChange={(e) => setAddressForm({ ...addressForm, company: e.target.value })}
-                />
                 <Input
                   label="Address Line 1"
                   value={addressForm.addressLine1}
                   onChange={(e) => setAddressForm({ ...addressForm, addressLine1: e.target.value })}
                   required
-                />
-                <Input
-                  label="Address Line 2 (Optional)"
-                  value={addressForm.addressLine2}
-                  onChange={(e) => setAddressForm({ ...addressForm, addressLine2: e.target.value })}
                 />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
@@ -1015,28 +845,20 @@ function ProfilePageContent() {
                     onChange={(e) => setAddressForm({ ...addressForm, postalCode: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Country
-                    </label>
-                    <select
-                      value={addressForm.countryCode}
-                      onChange={(e) => setAddressForm({ ...addressForm, countryCode: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900"
-                    >
-                      <option value="AM">Armenia</option>
-                      <option value="US">United States</option>
-                      <option value="RU">Russia</option>
-                      <option value="GE">Georgia</option>
-                    </select>
-                  </div>
-                  <Input
-                    label="Phone"
-                    type="tel"
-                    value={addressForm.phone}
-                    onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                  />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Country
+                  </label>
+                  <select
+                    value={addressForm.countryCode}
+                    onChange={(e) => setAddressForm({ ...addressForm, countryCode: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  >
+                    <option value="AM">Armenia</option>
+                    <option value="US">United States</option>
+                    <option value="RU">Russia</option>
+                    <option value="GE">Georgia</option>
+                  </select>
                 </div>
                 <label className="flex items-center">
                   <input
@@ -1077,21 +899,14 @@ function ProfilePageContent() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-gray-900">
-                            {address.firstName} {address.lastName}
-                          </h3>
                           {address.isDefault && (
                             <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
                               Default
                             </span>
                           )}
                         </div>
-                        {address.company && (
-                          <p className="text-sm text-gray-600 mb-1">{address.company}</p>
-                        )}
                         <p className="text-sm text-gray-700">
                           {address.addressLine1}
-                          {address.addressLine2 && `, ${address.addressLine2}`}
                         </p>
                         <p className="text-sm text-gray-700">
                           {address.city}
@@ -1099,9 +914,6 @@ function ProfilePageContent() {
                           {address.postalCode && ` ${address.postalCode}`}
                         </p>
                         <p className="text-sm text-gray-700">{address.countryCode}</p>
-                        {address.phone && (
-                          <p className="text-sm text-gray-600 mt-1">Phone: {address.phone}</p>
-                        )}
                       </div>
                       <div className="flex gap-2 ml-4">
                         {!address.isDefault && (
@@ -1161,9 +973,6 @@ function ProfilePageContent() {
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-gray-500">
-                Each badge shows its label above it. Click the badge to open the dropdown and choose a status.
-              </p>
               {orders.map((order) => (
                 <Link
                   key={order.id}
@@ -1174,20 +983,18 @@ function ProfilePageContent() {
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-6 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">Order #{order.number}</h3>
-                        <StatusBadgeSelector
-                          orderId={order.id}
-                          field="status"
-                          label="Order Status"
-                          currentValue={order.status}
-                          options={ORDER_STATUS_OPTIONS}
-                        />
-                        <StatusBadgeSelector
-                          orderId={order.id}
-                          field="paymentStatus"
-                          label="Payment Status"
-                          currentValue={order.paymentStatus}
-                          options={PAYMENT_STATUS_OPTIONS}
-                        />
+                        <div>
+                          <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-0.5">Order Status</p>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-[11px] uppercase tracking-wide text-gray-500 mb-0.5">Payment Status</p>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getPaymentStatusColor(order.paymentStatus)}`}>
+                            {order.paymentStatus}
+                          </span>
+                        </div>
                       </div>
                       <p className="text-sm text-gray-600">
                         {order.itemsCount} item{order.itemsCount !== 1 ? 's' : ''} • Placed on {new Date(order.createdAt).toLocaleDateString()}
