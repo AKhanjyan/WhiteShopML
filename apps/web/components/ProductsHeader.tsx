@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef, Suspense } from 'react';
+import { Filter } from 'lucide-react';
+import { MOBILE_FILTERS_EVENT } from '../lib/events';
 
 type ViewMode = 'list' | 'grid-2' | 'grid-3';
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc';
@@ -121,8 +123,8 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Left: All Products + Clear Filters */}
+      <div className="flex flex-col gap-4">
+        {/* Top: All Products Title + Clear Filters */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <div className="text-left">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -135,6 +137,7 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
               Showing {Math.min(currentLimit, total)} products per page
             </p>
           </div>
+          
           {hasActiveFilters && (
             <button
               type="button"
@@ -146,10 +149,33 @@ function ProductsHeaderContent({ total, perPage }: ProductsHeaderProps) {
           )}
         </div>
 
-        {/* Right: View Mode Icons + Sort + Show */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-          {/* View Mode Icons */}
-          <div className="flex items-center gap-2 justify-end">
+        {/* Filters Button + View Mode Icons - On one line with space between */}
+        <div className="flex items-center justify-between">
+          {/* Mobile Filter Button - On the left */}
+          <button
+            type="button"
+            onClick={() => {
+              console.debug('[ProductsHeader] Opening mobile filters');
+              window.dispatchEvent(new Event(MOBILE_FILTERS_EVENT));
+            }}
+            className="sm:hidden flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filters</span>
+            {hasActiveFilters && (
+              <span className="ml-1 rounded-full bg-gray-900 px-1.5 py-0.5 text-xs font-semibold text-white">
+                {Object.keys(Object.fromEntries(searchParams.entries())).filter(key => 
+                  ['search', 'category', 'minPrice', 'maxPrice', 'colors', 'sizes', 'brand'].includes(key)
+                ).length}
+              </span>
+            )}
+          </button>
+          
+          {/* Desktop: Empty space on left when filters button is hidden */}
+          <div className="hidden sm:block"></div>
+
+          {/* View Mode Icons - On the right */}
+          <div className="flex items-center gap-2">
             <button
               onClick={() => handleViewModeChange('list')}
               className={`rounded-md border border-transparent p-2 transition-colors ${

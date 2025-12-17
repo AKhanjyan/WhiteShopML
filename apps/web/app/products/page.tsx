@@ -207,6 +207,18 @@ export default async function ProductsPage({ searchParams }: any) {
 
         </div>
       </div>
+      
+      {/* Mobile Filters Drawer */}
+      <MobileFiltersDrawer openEventName={MOBILE_FILTERS_EVENT}>
+        <div className="p-4 space-y-6">
+          <Suspense fallback={<div>Loading filters...</div>}>
+            <PriceFilter currentMinPrice={params?.minPrice} currentMaxPrice={params?.maxPrice} category={params?.category} search={params?.search} />
+            <ColorFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedColors={selectedColors} />
+            <SizeFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedSizes={selectedSizes} />
+            <BrandFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedBrands={selectedBrands} />
+          </Suspense>
+        </div>
+      </MobileFiltersDrawer>
     </div>
   );
 }
