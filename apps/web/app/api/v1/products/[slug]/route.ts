@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { productsService } from "@/lib/services/products.service";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
