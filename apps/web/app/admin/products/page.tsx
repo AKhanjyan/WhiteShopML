@@ -184,7 +184,7 @@ export default function ProductsPage() {
     // fetchProducts will be called automatically by useEffect
   };
 
-  // Լոկալ (client-side) սորտավորում Product / Price սյունակների համար
+  // Լոկալ (client-side) սորտավորում Product / Price / Stock սյունակների համար
   const sortedProducts = useMemo(() => {
     if (!Array.isArray(products)) return [];
 
@@ -214,6 +214,20 @@ export default function ProductsPage() {
         if (aTitle === bTitle) return 0;
         return aTitle > bTitle ? direction : -direction;
       });
+    } else if (field === 'stock') {
+      cloned.sort((a, b) => {
+        // Հաշվարկում ենք ընդհանուր stock-ը (colorStocks-ի գումարը կամ պարզ stock-ը)
+        const getTotalStock = (product: Product) => {
+          if (product.colorStocks && product.colorStocks.length > 0) {
+            return product.colorStocks.reduce((sum, cs) => sum + (cs.stock || 0), 0);
+          }
+          return product.stock ?? 0;
+        };
+        const aStock = getTotalStock(a);
+        const bStock = getTotalStock(b);
+        if (aStock === bStock) return 0;
+        return aStock > bStock ? direction : -direction;
+      });
     }
 
     return cloned;
@@ -224,8 +238,9 @@ export default function ProductsPage() {
    * field === 'price' → price-asc / price-desc
    * field === 'createdAt' → createdAt-asc / createdAt-desc
    * field === 'title' → title-asc / title-desc
+   * field === 'stock' → stock-asc / stock-desc
    */
-  const handleHeaderSort = (field: 'price' | 'createdAt' | 'title') => {
+  const handleHeaderSort = (field: 'price' | 'createdAt' | 'title' | 'stock') => {
     setPage(1);
 
     setSortBy((current) => {
@@ -252,6 +267,14 @@ export default function ProductsPage() {
           next = 'title-desc';
         } else {
           next = 'title-asc';
+        }
+      }
+
+      if (field === 'stock') {
+        if (current === 'stock-asc') {
+          next = 'stock-desc';
+        } else {
+          next = 'stock-asc';
         }
       }
 
@@ -478,6 +501,18 @@ export default function ProductsPage() {
             </form>
           </Card>
 
+          {/* Delete Selected Block */}
+          <div className="px-4 py-3 flex items-center justify-between border border-gray-200 rounded-md bg-white">
+            <div className="text-sm text-gray-700">Selected {selectedIds.size} products</div>
+            <Button
+              variant="outline"
+              onClick={handleBulkDelete}
+              disabled={selectedIds.size === 0 || bulkDeleting}
+            >
+              {bulkDeleting ? 'Deleting...' : 'Delete selected'}
+            </Button>
+          </div>
+
         </div>
 
         {/* Products Table */}
@@ -541,7 +576,39 @@ export default function ProductsPage() {
                         </button> 
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        STOCK
+                        <button
+                          type="button"
+                          onClick={() => handleHeaderSort('stock')}
+                          className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-800"
+                        >
+                          <span>STOCK</span>
+                          <span className="flex flex-col gap-0.5">
+                            <svg
+                              className={`w-2.5 h-2.5 ${
+                                sortBy === 'stock-asc'
+                                  ? 'text-gray-900'
+                                  : 'text-gray-400'
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                            <svg
+                              className={`w-2.5 h-2.5 ${
+                                sortBy === 'stock-desc'
+                                  ? 'text-gray-900'
+                                  : 'text-gray-400'
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </span>
+                        </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <button
@@ -780,16 +847,6 @@ export default function ProductsPage() {
                   </div>
                 </div>
               )}
-              <div className="px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                <div className="text-sm text-gray-700">Selected {selectedIds.size} products</div>
-                <Button
-                  variant="outline"
-                  onClick={handleBulkDelete}
-                  disabled={selectedIds.size === 0 || bulkDeleting}
-                >
-                  {bulkDeleting ? 'Deleting...' : 'Delete selected'}
-                </Button>
-              </div>
             </>
           )}
         </Card>
