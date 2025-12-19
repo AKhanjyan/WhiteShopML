@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@prisma/client": "^5.9.0",
     "@shop/design-tokens": "*",
     "@shop/ui": "*",
     "@white-shop/db": "*",

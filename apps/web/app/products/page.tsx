@@ -14,6 +14,8 @@ import { MobileFiltersDrawer } from '../../components/MobileFiltersDrawer';
 import { MOBILE_FILTERS_EVENT } from '../../lib/events';
 
 const PAGE_CONTAINER = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
+// Container for filters section to align with Header logo (same Y-axis)
+// Header logo uses: pl-2 sm:pl-4 md:pl-6 lg:pl-8
 
 interface Product {
   id: string;
@@ -173,7 +175,7 @@ export default async function ProductsPage({ searchParams }: any) {
         />
       </div>
 
-      <div className={`${PAGE_CONTAINER} flex flex-col lg:flex-row gap-8 max-w-full`}>
+      <div className="max-w-7xl mx-auto pl-2 sm:pl-4 md:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8 flex flex-col lg:flex-row gap-8">
         <aside className="w-64 hidden lg:block bg-gray-50 rounded-xl flex-shrink-0">
           <div className="sticky top-4 p-4 space-y-6">
             <Suspense fallback={<div>Loading filters...</div>}>
