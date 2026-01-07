@@ -1358,8 +1358,15 @@ function ProfilePageContent() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-6">Order Items</h3>
                         <div className="space-y-4">
                           {selectedOrder.items.map((item, index) => {
-                            const colorOption = item.variantOptions?.find(opt => opt.attributeKey === 'color');
-                            const sizeOption = item.variantOptions?.find(opt => opt.attributeKey === 'size');
+                            // Extract color and size from variant options (case-insensitive matching)
+                            const colorOption = item.variantOptions?.find(opt => {
+                              const key = opt.attributeKey?.toLowerCase()?.trim();
+                              return key === 'color' || key === 'colour';
+                            });
+                            const sizeOption = item.variantOptions?.find(opt => {
+                              const key = opt.attributeKey?.toLowerCase()?.trim();
+                              return key === 'size';
+                            });
                             const color = colorOption?.value;
                             const size = sizeOption?.value;
                             
@@ -1376,10 +1383,8 @@ function ProfilePageContent() {
                                 )}
                                 <div className="flex-1">
                                   <h4 className="text-lg font-semibold text-gray-900 mb-1">{item.productTitle}</h4>
-                                  {item.variantTitle && (
-                                    <p className="text-sm text-gray-600 mb-1">{item.variantTitle}</p>
-                                  )}
                                   
+                                  {/* Display variation options (color and size) */}
                                   {(color || size) && (
                                     <div className="flex flex-wrap gap-3 mt-2 mb-2">
                                       {color && (

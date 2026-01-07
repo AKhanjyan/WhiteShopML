@@ -535,6 +535,18 @@ export default function ProductPage({ params }: ProductPageProps) {
     })));
   }
 
+  // Debug logging for stock display
+  console.log('📦 [PRODUCT PAGE] Stock information:', {
+    productId: product?.id,
+    productSlug: product?.slug,
+    colorGroups: colorGroups.map(g => ({ color: g.color, stock: g.stock })),
+    sizeGroups: sizeGroups.map(g => ({ size: g.size, stock: g.stock })),
+    attributeGroups: Array.from(attributeGroups.entries()).map(([key, groups]) => ({
+      key,
+      groups: groups.map(g => ({ value: g.value, stock: g.stock })),
+    })),
+  });
+
   const currentVariant = selectedVariant || findVariantByColorAndSize(selectedColor, selectedSize) || product?.variants?.[0] || null;
   const price = currentVariant?.price || 0;
   const originalPrice = currentVariant?.originalPrice;
@@ -872,26 +884,30 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <div key={attrKey} className="space-y-2">
                     <label className="text-sm font-bold uppercase">{productAttr.attribute.name}:</label>
                     {isColor ? (
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 items-center">
                         {attrGroups.map((g) => {
                           const isSelected = selectedColor === g.value.toLowerCase().trim();
                           const isDisabled = g.stock <= 0;
                           
                           return (
-                            <button 
-                              key={g.valueId || g.value} 
-                              onClick={() => !isDisabled && handleColorSelect(g.value)}
-                              disabled={isDisabled}
-                              className={`w-10 h-10 rounded-full border-2 transition-all ${
-                                isSelected 
-                                  ? 'border-gray-900 ring-2 ring-offset-2 ring-gray-900 scale-110' 
-                                  : isDisabled 
-                                    ? 'border-gray-100 opacity-30 grayscale cursor-not-allowed' 
-                                    : 'border-gray-300 hover:scale-105'
-                              }`}
-                              style={{ backgroundColor: getColorValue(g.value) }} 
-                              title={isDisabled ? `${g.label} (Out of Stock)` : g.label} 
-                            />
+                            <div key={g.valueId || g.value} className="flex flex-col items-center gap-1">
+                              <button 
+                                onClick={() => !isDisabled && handleColorSelect(g.value)}
+                                disabled={isDisabled}
+                                className={`w-10 h-10 rounded-full border-2 transition-all ${
+                                  isSelected 
+                                    ? 'border-gray-900 ring-2 ring-offset-2 ring-gray-900 scale-110' 
+                                    : isDisabled 
+                                      ? 'border-gray-100 opacity-30 grayscale cursor-not-allowed' 
+                                      : 'border-gray-300 hover:scale-105'
+                                }`}
+                                style={{ backgroundColor: getColorValue(g.value) }} 
+                                title={isDisabled ? `${g.label} (Out of Stock)` : `${g.label}${g.stock > 0 ? ` (${g.stock} pcs)` : ''}`} 
+                              />
+                              {g.stock > 0 && (
+                                <span className="text-xs text-gray-500">{g.stock}</span>
+                              )}
+                            </div>
                           );
                         })}
                       </div>
@@ -978,26 +994,30 @@ export default function ProductPage({ params }: ProductPageProps) {
                 {colorGroups.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Color:</label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 items-center">
                       {colorGroups.map((g) => {
                         const isSelected = selectedColor === g.color;
                         const isDisabled = g.stock <= 0;
                         
                         return (
-                          <button 
-                            key={g.color} 
-                            onClick={() => !isDisabled && handleColorSelect(g.color)}
-                            disabled={isDisabled}
-                            className={`w-10 h-10 rounded-full border-2 transition-all ${
-                              isSelected 
-                                ? 'border-gray-900 ring-2 ring-offset-2 ring-gray-900 scale-110' 
-                                : isDisabled 
-                                  ? 'border-gray-100 opacity-30 grayscale cursor-not-allowed' 
-                                  : 'border-gray-300 hover:scale-105'
-                            }`}
-                            style={{ backgroundColor: getColorValue(g.color) }} 
-                            title={isDisabled ? `${g.color} (Out of Stock)` : g.color} 
-                          />
+                          <div key={g.color} className="flex flex-col items-center gap-1">
+                            <button 
+                              onClick={() => !isDisabled && handleColorSelect(g.color)}
+                              disabled={isDisabled}
+                              className={`w-10 h-10 rounded-full border-2 transition-all ${
+                                isSelected 
+                                  ? 'border-gray-900 ring-2 ring-offset-2 ring-gray-900 scale-110' 
+                                  : isDisabled 
+                                    ? 'border-gray-100 opacity-30 grayscale cursor-not-allowed' 
+                                    : 'border-gray-300 hover:scale-105'
+                              }`}
+                              style={{ backgroundColor: getColorValue(g.color) }} 
+                              title={isDisabled ? `${g.color} (Out of Stock)` : `${g.color}${g.stock > 0 ? ` (${g.stock} pcs)` : ''}`} 
+                            />
+                            {g.stock > 0 && (
+                              <span className="text-xs text-gray-500">{g.stock}</span>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -1038,7 +1058,9 @@ export default function ProductPage({ params }: ProductPageProps) {
                       >
                         <div className="flex flex-col text-center">
                           <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>{g.size}</span>
-                          <span className={`text-xs ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>{displayStock} pcs</span>
+                          {displayStock > 0 && (
+                            <span className={`text-xs ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>{displayStock} pcs</span>
+                          )}
                         </div>
                       </button>
                     );

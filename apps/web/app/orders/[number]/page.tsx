@@ -117,6 +117,16 @@ export default function OrderPage() {
     try {
       setLoading(true);
       const response = await apiClient.get<Order>(`/api/v1/orders/${params.number}`);
+      console.log('📦 [ORDER PAGE] Order data received:', {
+        orderNumber: response.number,
+        itemsCount: response.items.length,
+        items: response.items.map(item => ({
+          productTitle: item.productTitle,
+          variantId: item.variantId,
+          variantOptions: item.variantOptions,
+          variantOptionsCount: item.variantOptions?.length || 0,
+        })),
+      });
       setOrder(response);
     } catch (error: any) {
       console.error('Error fetching order:', error);
@@ -205,11 +215,32 @@ export default function OrderPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Items</h2>
             <div className="space-y-4">
               {order.items.map((item, index) => {
-                // Extract color and size from variant options
-                const colorOption = item.variantOptions?.find(opt => opt.attributeKey === 'color');
-                const sizeOption = item.variantOptions?.find(opt => opt.attributeKey === 'size');
+                // Debug logging
+                console.log(`🔍 [ORDER PAGE] Item ${index}:`, {
+                  productTitle: item.productTitle,
+                  variantId: item.variantId,
+                  variantOptions: item.variantOptions,
+                  variantOptionsCount: item.variantOptions?.length || 0,
+                });
+
+                // Extract color and size from variant options (case-insensitive matching)
+                const colorOption = item.variantOptions?.find(opt => {
+                  const key = opt.attributeKey?.toLowerCase()?.trim();
+                  return key === 'color' || key === 'colour';
+                });
+                const sizeOption = item.variantOptions?.find(opt => {
+                  const key = opt.attributeKey?.toLowerCase()?.trim();
+                  return key === 'size';
+                });
                 const color = colorOption?.value;
                 const size = sizeOption?.value;
+
+                console.log(`🎨 [ORDER PAGE] Item ${index} extracted:`, {
+                  colorOption,
+                  sizeOption,
+                  color,
+                  size,
+                });
                 
                 return (
                   <div key={index} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0">
@@ -224,9 +255,6 @@ export default function OrderPage() {
                     )}
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.productTitle}</h3>
-                      {item.variantTitle && (
-                        <p className="text-sm text-gray-600 mb-1">{item.variantTitle}</p>
-                      )}
                       
                       {/* Display variation options (color and size) */}
                       {(color || size) && (

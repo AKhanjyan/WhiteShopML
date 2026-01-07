@@ -324,6 +324,15 @@ class AdminService {
                     },
                   },
                 },
+                options: {
+                  include: {
+                    attributeValue: {
+                      include: {
+                        attribute: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -357,6 +366,53 @@ class AdminService {
       const unitPrice =
         quantity > 0 ? Number((total / quantity).toFixed(2)) : total;
 
+      // Extract variant options (color, size, etc.)
+      // Support both new format (AttributeValue) and old format (attributeKey/value)
+      const variantOptions = variant?.options?.map((opt: {
+        attributeKey: string | null;
+        value: string | null;
+        valueId: string | null;
+        attributeValue: {
+          value: string;
+          attribute: {
+            key: string;
+          };
+        } | null;
+      }) => {
+        // Debug logging for each option
+        console.log(`🔍 [ADMIN SERVICE] Processing option:`, {
+          attributeKey: opt.attributeKey,
+          value: opt.value,
+          valueId: opt.valueId,
+          hasAttributeValue: !!opt.attributeValue,
+          attributeValueData: opt.attributeValue ? {
+            value: opt.attributeValue.value,
+            attributeKey: opt.attributeValue.attribute.key,
+          } : null,
+        });
+
+        // New format: Use AttributeValue if available
+        if (opt.attributeValue) {
+          return {
+            attributeKey: opt.attributeValue.attribute.key || undefined,
+            value: opt.attributeValue.value || undefined,
+          };
+        }
+        // Old format: Use attributeKey and value directly
+        return {
+          attributeKey: opt.attributeKey || undefined,
+          value: opt.value || undefined,
+        };
+      }) || [];
+
+      console.log(`🔍 [ADMIN SERVICE] Item mapping:`, {
+        productTitle: item.productTitle,
+        variantId: item.variantId,
+        hasVariant: !!variant,
+        optionsCount: variant?.options?.length || 0,
+        variantOptions,
+      });
+
       return {
         id: item.id,
         variantId: item.variantId || variant?.id || null,
@@ -366,6 +422,7 @@ class AdminService {
         quantity,
         total,
         unitPrice,
+        variantOptions,
       };
     });
 

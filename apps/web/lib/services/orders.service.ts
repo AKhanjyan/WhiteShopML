@@ -434,7 +434,15 @@ class OrdersService {
           include: {
             variant: {
               include: {
-                options: true,
+                options: {
+                  include: {
+                    attributeValue: {
+                      include: {
+                        attribute: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -463,6 +471,21 @@ class OrdersService {
       }
     }
 
+    // Debug logging
+    console.log('📦 [ORDERS SERVICE] Order found:', {
+      orderNumber: order.number,
+      itemsCount: order.items.length,
+      items: order.items.map((item: any) => ({
+        variantId: item.variantId,
+        productTitle: item.productTitle,
+        variant: item.variant ? {
+          id: item.variant.id,
+          optionsCount: item.variant.options?.length || 0,
+          options: item.variant.options,
+        } : null,
+      })),
+    });
+
     return {
       id: order.id,
       number: order.number,
@@ -484,23 +507,64 @@ class OrdersService {
             value: string | null;
           }>;
         } | null;
-      }) => ({
-        variantId: item.variantId || '',
-        productTitle: item.productTitle,
-        variantTitle: item.variantTitle || '',
-        sku: item.sku,
-        quantity: item.quantity,
-        price: Number(item.price),
-        total: Number(item.total),
-        imageUrl: item.imageUrl || undefined,
-        variantOptions: item.variant?.options?.map((opt: {
+      }) => {
+        const variantOptions = item.variant?.options?.map((opt: {
           attributeKey: string | null;
           value: string | null;
-        }) => ({
-          attributeKey: opt.attributeKey || undefined,
-          value: opt.value || undefined,
-        })) || [],
-      })),
+          valueId: string | null;
+          attributeValue: {
+            value: string;
+            attribute: {
+              key: string;
+            };
+          } | null;
+        }) => {
+          // Debug logging for each option
+          console.log(`🔍 [ORDERS SERVICE] Processing option:`, {
+            attributeKey: opt.attributeKey,
+            value: opt.value,
+            valueId: opt.valueId,
+            hasAttributeValue: !!opt.attributeValue,
+            attributeValueData: opt.attributeValue ? {
+              value: opt.attributeValue.value,
+              attributeKey: opt.attributeValue.attribute.key,
+            } : null,
+          });
+
+          // New format: Use AttributeValue if available
+          if (opt.attributeValue) {
+            return {
+              attributeKey: opt.attributeValue.attribute.key || undefined,
+              value: opt.attributeValue.value || undefined,
+            };
+          }
+          // Old format: Use attributeKey and value directly
+          return {
+            attributeKey: opt.attributeKey || undefined,
+            value: opt.value || undefined,
+          };
+        }) || [];
+
+        console.log(`🔍 [ORDERS SERVICE] Item mapping:`, {
+          productTitle: item.productTitle,
+          variantId: item.variantId,
+          hasVariant: !!item.variant,
+          optionsCount: item.variant?.options?.length || 0,
+          variantOptions,
+        });
+
+        return {
+          variantId: item.variantId || '',
+          productTitle: item.productTitle,
+          variantTitle: item.variantTitle || '',
+          sku: item.sku,
+          quantity: item.quantity,
+          price: Number(item.price),
+          total: Number(item.total),
+          imageUrl: item.imageUrl || undefined,
+          variantOptions,
+        };
+      }),
       totals: {
         subtotal: Number(order.subtotal),
         discount: Number(order.discountAmount),

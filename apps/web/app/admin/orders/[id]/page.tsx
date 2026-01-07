@@ -45,6 +45,10 @@ interface OrderDetails {
     quantity: number;
     unitPrice: number;
     total: number;
+    variantOptions?: Array<{
+      attributeKey?: string;
+      value?: string;
+    }>;
   }>;
   createdAt: string;
   updatedAt?: string;
@@ -65,6 +69,20 @@ export default function OrderDetailsPage() {
       currency,
       minimumFractionDigits: 0,
     }).format(amount);
+  };
+
+  // Helper function to get color hex/rgb from color name
+  const getColorValue = (colorName: string): string => {
+    const colorMap: Record<string, string> = {
+      'beige': '#F5F5DC', 'black': '#000000', 'blue': '#0000FF', 'brown': '#A52A2A',
+      'gray': '#808080', 'grey': '#808080', 'green': '#008000', 'red': '#FF0000',
+      'white': '#FFFFFF', 'yellow': '#FFFF00', 'orange': '#FFA500', 'pink': '#FFC0CB',
+      'purple': '#800080', 'navy': '#000080', 'maroon': '#800000', 'olive': '#808000',
+      'teal': '#008080', 'cyan': '#00FFFF', 'magenta': '#FF00FF', 'lime': '#00FF00',
+      'silver': '#C0C0C0', 'gold': '#FFD700',
+    };
+    const normalizedName = colorName.toLowerCase().trim();
+    return colorMap[normalizedName] || '#CCCCCC';
   };
 
   useEffect(() => {
@@ -247,25 +265,63 @@ export default function OrderDetailsPage() {
                       <tr>
                         <th className="px-3 py-2 text-left font-medium text-gray-500">Product</th>
                         <th className="px-3 py-2 text-left font-medium text-gray-500">SKU</th>
+                        <th className="px-3 py-2 text-left font-medium text-gray-500">Color / Size</th>
                         <th className="px-3 py-2 text-right font-medium text-gray-500">Qty</th>
                         <th className="px-3 py-2 text-right font-medium text-gray-500">Price</th>
                         <th className="px-3 py-2 text-right font-medium text-gray-500">Total</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white">
-                      {order.items.map((item) => (
-                        <tr key={item.id}>
-                          <td className="px-3 py-2">{item.productTitle}</td>
-                          <td className="px-3 py-2 text-gray-500">{item.sku}</td>
-                          <td className="px-3 py-2 text-right">{item.quantity}</td>
-                          <td className="px-3 py-2 text-right">
-                            {formatCurrency(item.unitPrice, order.currency || 'AMD')}
-                          </td>
-                          <td className="px-3 py-2 text-right">
-                            {formatCurrency(item.total, order.currency || 'AMD')}
-                          </td>
-                        </tr>
-                      ))}
+                      {order.items.map((item) => {
+                        // Extract color and size from variant options (case-insensitive matching)
+                        const colorOption = item.variantOptions?.find(opt => {
+                          const key = opt.attributeKey?.toLowerCase()?.trim();
+                          return key === 'color' || key === 'colour';
+                        });
+                        const sizeOption = item.variantOptions?.find(opt => {
+                          const key = opt.attributeKey?.toLowerCase()?.trim();
+                          return key === 'size';
+                        });
+                        const color = colorOption?.value;
+                        const size = sizeOption?.value;
+
+                        return (
+                          <tr key={item.id}>
+                            <td className="px-3 py-2">{item.productTitle}</td>
+                            <td className="px-3 py-2 text-gray-500">{item.sku}</td>
+                            <td className="px-3 py-2">
+                              {(color || size) ? (
+                                <div className="flex flex-wrap gap-2 items-center">
+                                  {color && (
+                                    <div className="flex items-center gap-1.5">
+                                      <div 
+                                        className="w-4 h-4 rounded-full border border-gray-300 flex-shrink-0"
+                                        style={{ 
+                                          backgroundColor: getColorValue(color),
+                                        }}
+                                        title={color}
+                                      />
+                                      <span className="text-xs text-gray-700 capitalize">{color}</span>
+                                    </div>
+                                  )}
+                                  {size && (
+                                    <span className="text-xs text-gray-700 uppercase">{size}</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-400">—</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-right">{item.quantity}</td>
+                            <td className="px-3 py-2 text-right">
+                              {formatCurrency(item.unitPrice, order.currency || 'AMD')}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              {formatCurrency(item.total, order.currency || 'AMD')}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
