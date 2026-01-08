@@ -13,7 +13,8 @@
     "register": "Register",
     "search": "Search",
     "shopNow": "Shop Now",
-    "viewMore": "View More"
+    "viewMore": "View More",
+    "close": "Close"
   },
   "navigation": {
     "home": "Home",
@@ -110,7 +111,9 @@
     "removedFromCompare": "Removed from compare",
     "errorAddingToCart": "Error adding to cart",
     "loading": "Loading...",
+    "loadingFilters": "Loading filters...",
     "noImage": "No Image",
+    "noProductsFound": "No products found",
     "selectColor": "Please select color",
     "selectSize": "Please select size",
     "selectColorAndSize": "Please select size and color",
@@ -159,7 +162,10 @@
     "color": "Color: {color}",
     "previousImage": "Previous image",
     "nextImage": "Next image",
-    "goToSlide": "Go to slide {number}"
+    "goToSlide": "Go to slide {number}",
+    "previousThumbnail": "Previous thumbnail",
+    "nextThumbnail": "Next thumbnail",
+    "fullscreenImage": "Fullscreen image"
   },
   "placeholders": {
     "search": "Search for products"
@@ -184,6 +190,16 @@
   "product": {
     "product": "product",
     "products": "products"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {totalPages}"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "description": "The page you are looking for doesn't exist or has been moved.",
+    "goHome": "Go Home"
   }
 }
 

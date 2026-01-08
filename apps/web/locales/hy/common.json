@@ -13,7 +13,8 @@
     "register": "Գրանցում",
     "search": "Որոնել",
     "shopNow": "Գնել հիմա",
-    "viewMore": "Դիտել ավելին"
+    "viewMore": "Դիտել ավելին",
+    "close": "Փակել"
   },
   "navigation": {
     "home": "Գլխավոր",
@@ -108,7 +109,9 @@
     "removedFromCompare": "Հեռացվեց համեմատման ցուցակից",
     "errorAddingToCart": "Սխալ ավելացնելիս",
     "loading": "Բեռնվում է...",
+    "loadingFilters": "Բեռնվում են ֆիլտրերը...",
     "noImage": "Պատկեր չկա",
+    "noProductsFound": "Ապրանքներ չգտնվեցին",
     "selectColor": "Խնդրում ենք ընտրել գույն",
     "selectSize": "Խնդրում ենք ընտրել չափ",
     "selectColorAndSize": "Խնդրում ենք ընտրել գույն և չափ",
@@ -160,7 +163,10 @@
     "goToSlide": "Գնալ {number} սլայդ",
     "removeItem": "Հեռացնել ապրանք",
     "decreaseQuantity": "Նվազեցնել քանակ",
-    "increaseQuantity": "Ավելացնել քանակ"
+    "increaseQuantity": "Ավելացնել քանակ",
+    "previousThumbnail": "Նախորդ մանրապատկեր",
+    "nextThumbnail": "Հաջորդ մանրապատկեր",
+    "fullscreenImage": "Լիաէկրան պատկեր"
   },
   "placeholders": {
     "search": "Որոնել ապրանքներ"
@@ -185,6 +191,16 @@
   "product": {
     "product": "ապրանք",
     "products": "ապրանք"
+  },
+  "pagination": {
+    "previous": "Նախորդ",
+    "next": "Հաջորդ",
+    "pageOf": "Էջ {page} {totalPages}-ից"
+  },
+  "notFound": {
+    "title": "Էջը չի գտնվել",
+    "description": "Ձեր փնտրած էջը գոյություն չունի կամ տեղափոխվել է:",
+    "goHome": "Գնալ գլխավոր էջ"
   }
 }
 

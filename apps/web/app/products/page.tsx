@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { getStoredLanguage } from '../../lib/language';
+import { t } from '../../lib/i18n';
 import { PriceFilter } from '../../components/PriceFilter';
 import { ColorFilter } from '../../components/ColorFilter';
 import { SizeFilter } from '../../components/SizeFilter';
@@ -176,6 +177,9 @@ export default async function ProductsPage({ searchParams }: any) {
     return `/products?${q.toString()}`;
   };
 
+  // Get language for translations
+  const language = getStoredLanguage();
+
   return (
     <div className="w-full overflow-x-hidden max-w-full">
       {/* Category Navigation - Full Width */}
@@ -192,7 +196,7 @@ export default async function ProductsPage({ searchParams }: any) {
       <div className="max-w-7xl mx-auto pl-2 sm:pl-4 md:pl-6 lg:pl-8 pr-4 sm:pr-6 lg:pr-8 flex flex-col lg:flex-row gap-8">
         <aside className="w-64 hidden lg:block bg-gray-50 rounded-xl flex-shrink-0">
           <div className="sticky top-4 p-4 space-y-6">
-            <Suspense fallback={<div>Loading filters...</div>}>
+            <Suspense fallback={<div>{t(language, 'common.messages.loadingFilters')}</div>}>
               <PriceFilter currentMinPrice={params?.minPrice} currentMaxPrice={params?.maxPrice} category={params?.category} search={params?.search} />
               <ColorFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedColors={selectedColors} />
               <SizeFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedSizes={selectedSizes} />
@@ -209,15 +213,15 @@ export default async function ProductsPage({ searchParams }: any) {
 
               {productsData.meta.totalPages > 1 && (
                 <div className="mt-8 flex justify-center gap-2">
-                  {page > 1 && <Link href={buildPaginationUrl(page - 1)}><Button variant="outline">Previous</Button></Link>}
-                  <span>Page {page} of {productsData.meta.totalPages}</span>
-                  {page < productsData.meta.totalPages && <Link href={buildPaginationUrl(page + 1)}><Button variant="outline">Next</Button></Link>}
+                  {page > 1 && <Link href={buildPaginationUrl(page - 1)}><Button variant="outline">{t(language, 'common.pagination.previous')}</Button></Link>}
+                  <span>{t(language, 'common.pagination.pageOf').replace('{page}', page.toString()).replace('{totalPages}', productsData.meta.totalPages.toString())}</span>
+                  {page < productsData.meta.totalPages && <Link href={buildPaginationUrl(page + 1)}><Button variant="outline">{t(language, 'common.pagination.next')}</Button></Link>}
                 </div>
               )}
             </>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No products found</p>
+              <p className="text-gray-500 text-lg">{t(language, 'common.messages.noProductsFound')}</p>
             </div>
           )}
 
@@ -227,7 +231,7 @@ export default async function ProductsPage({ searchParams }: any) {
       {/* Mobile Filters Drawer */}
       <MobileFiltersDrawer openEventName={MOBILE_FILTERS_EVENT}>
         <div className="p-4 space-y-6">
-          <Suspense fallback={<div>Loading filters...</div>}>
+          <Suspense fallback={<div>{t(language, 'common.messages.loadingFilters')}</div>}>
             <PriceFilter currentMinPrice={params?.minPrice} currentMaxPrice={params?.maxPrice} category={params?.category} search={params?.search} />
             <ColorFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedColors={selectedColors} />
             <SizeFilter category={params?.category} search={params?.search} minPrice={params?.minPrice} maxPrice={params?.maxPrice} selectedSizes={selectedSizes} />

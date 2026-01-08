@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { getStoredLanguage } from '../../lib/language';
+import { useTranslation } from '../../lib/i18n';
 
 interface Category {
   id: string;
@@ -30,6 +31,7 @@ interface ProductsResponse {
 
 export default function CategoriesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [productCounts, setProductCounts] = useState<Record<string, number>>({});
@@ -97,7 +99,7 @@ export default function CategoriesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading categories...</p>
+          <p className="text-gray-600">{t('categories.loading')}</p>
         </div>
       </div>
     );
@@ -105,14 +107,14 @@ export default function CategoriesPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Categories</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-4">{t('categories.title')}</h1>
       <p className="text-gray-600 mb-8">
-        Select product categories to find what you're looking for.
+        {t('categories.description')}
       </p>
       
       {allCategories.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No categories found</p>
+          <p className="text-gray-600">{t('categories.empty')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -126,7 +128,7 @@ export default function CategoriesPage() {
                 {category.title}
               </h3>
               <p className="text-sm text-gray-500 mb-4">
-                {productCounts[category.slug] || 0} products
+                {productCounts[category.slug] || 0} {t('categories.productsCount')}
               </p>
             </Card>
           ))}

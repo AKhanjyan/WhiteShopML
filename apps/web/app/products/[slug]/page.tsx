@@ -778,7 +778,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   }}
                   disabled={currentImageIndex <= 0}
                   className="w-9 h-9 rounded border transition-all duration-200 flex items-center justify-center border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-200 hover:shadow-[0_1px_3px_rgba(0,0,0,0.1)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-100 disabled:hover:border-gray-300 disabled:hover:shadow-none bg-gray-100"
-                  aria-label="Previous thumbnail"
+                  aria-label={t(language, 'common.ariaLabels.previousThumbnail')}
                 >
                   <svg 
                     className="w-4 h-4" 
@@ -808,7 +808,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                   }}
                   disabled={currentImageIndex >= images.length - 1}
                   className="w-9 h-9 rounded border transition-all duration-200 flex items-center justify-center border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-200 hover:shadow-[0_1px_3px_rgba(0,0,0,0.1)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-gray-100 disabled:hover:border-gray-300 disabled:hover:shadow-none bg-gray-100"
-                  aria-label="Next thumbnail"
+                  aria-label={t(language, 'common.ariaLabels.nextThumbnail')}
                 >
                   <svg 
                     className="w-4 h-4" 
@@ -856,7 +856,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               <button 
                 onClick={() => setShowZoom(true)} 
                 className="w-12 h-12 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/50 shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:bg-white/90 transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
-                aria-label="Fullscreen image"
+                aria-label={t(language, 'common.ariaLabels.fullscreenImage')}
               >
                 <Maximize2 className="w-5 h-5 text-gray-800" />
               </button>
@@ -1169,7 +1169,16 @@ export default function ProductPage({ params }: ProductPageProps) {
       {showZoom && images.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onClick={() => setShowZoom(false)}>
           <img src={images[currentImageIndex]} alt="" className="max-w-full max-h-full object-contain" />
-          <button className="absolute top-4 right-4 text-white text-2xl">✕</button>
+          <button 
+            className="absolute top-4 right-4 text-white text-2xl"
+            aria-label={t(language, 'common.buttons.close')}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowZoom(false);
+            }}
+          >
+            {t(language, 'common.buttons.close')}
+          </button>
         </div>
       )}
 

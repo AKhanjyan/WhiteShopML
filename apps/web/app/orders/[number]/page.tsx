@@ -7,6 +7,7 @@ import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { formatPrice, getStoredCurrency } from '../../../lib/currency';
 import { useAuth } from '../../../lib/auth/AuthContext';
+import { useTranslation } from '../../../lib/i18n';
 
 // Helper function to get color hex/rgb from color name
 const getColorValue = (colorName: string): string => {
@@ -89,6 +90,7 @@ export default function OrderPage() {
   const params = useParams();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -130,7 +132,7 @@ export default function OrderPage() {
       setOrder(response);
     } catch (error: any) {
       console.error('Error fetching order:', error);
-      setError(error.message || 'Failed to load order');
+      setError(error.message || t('orders.notFound.description'));
     } finally {
       setLoading(false);
     }
@@ -151,10 +153,10 @@ export default function OrderPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Card className="p-6 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Order Not Found</h1>
-          <p className="text-gray-600 mb-6">{error || 'The order you are looking for does not exist.'}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">{t('orders.notFound.title')}</h1>
+          <p className="text-gray-600 mb-6">{error || t('orders.notFound.description')}</p>
           <Link href="/products">
-            <Button variant="primary">Continue Shopping</Button>
+            <Button variant="primary">{t('orders.buttons.continueShopping')}</Button>
           </Link>
         </Card>
       </div>
@@ -185,9 +187,9 @@ export default function OrderPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Order #{order.number}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('orders.title').replace('{number}', order.number)}</h1>
         <p className="text-gray-600">
-          Placed on {new Date(order.createdAt).toLocaleDateString()}
+          {t('orders.placedOn').replace('{date}', new Date(order.createdAt).toLocaleDateString())}
         </p>
       </div>
 
@@ -196,23 +198,23 @@ export default function OrderPage() {
         <div className="lg:col-span-2 space-y-6">
           {/* Status */}
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Status</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('orders.orderStatus.title')}</h2>
             <div className="flex items-center gap-4">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                 {order.status}
               </span>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.paymentStatus)}`}>
-                Payment: {order.paymentStatus}
+                {t('orders.orderStatus.payment').replace('{status}', order.paymentStatus)}
               </span>
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.fulfillmentStatus)}`}>
-                Fulfillment: {order.fulfillmentStatus}
+                {t('orders.orderStatus.fulfillment').replace('{status}', order.fulfillmentStatus)}
               </span>
             </div>
           </Card>
 
           {/* Order Items */}
           <Card className="p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Items</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('orders.orderItems.title')}</h2>
             <div className="space-y-4">
               {order.items.map((item, index) => {
                 // Debug logging
@@ -261,7 +263,7 @@ export default function OrderPage() {
                         <div className="flex flex-wrap gap-3 mt-2 mb-2">
                           {color && (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-700">Color:</span>
+                              <span className="text-sm font-medium text-gray-700">{t('orders.itemDetails.color')}</span>
                               <div className="flex items-center gap-2">
                                 <div 
                                   className="w-5 h-5 rounded-full border border-gray-300"
@@ -276,16 +278,19 @@ export default function OrderPage() {
                           )}
                           {size && (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-700">Size:</span>
+                              <span className="text-sm font-medium text-gray-700">{t('orders.itemDetails.size')}</span>
                               <span className="text-sm text-gray-900 uppercase">{size}</span>
                             </div>
                           )}
                         </div>
                       )}
                       
-                      <p className="text-sm text-gray-600">SKU: {item.sku}</p>
+                      <p className="text-sm text-gray-600">{t('orders.itemDetails.sku').replace('{sku}', item.sku)}</p>
                       <p className="text-sm text-gray-600 mt-2">
-                        Quantity: {item.quantity} × {formatPrice(item.price, currency)} = {formatPrice(item.total, currency)}
+                        {t('orders.itemDetails.quantity')
+                          .replace('{qty}', item.quantity.toString())
+                          .replace('{price}', formatPrice(item.price, currency))
+                          .replace('{total}', formatPrice(item.total, currency))}
                       </p>
                     </div>
                   </div>
@@ -297,7 +302,7 @@ export default function OrderPage() {
           {/* Shipping Address */}
           {order.shippingAddress && (
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Shipping Address</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('orders.shippingAddress.title')}</h2>
               <div className="text-gray-600">
                 {order.shippingAddress.firstName && order.shippingAddress.lastName && (
                   <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
@@ -311,7 +316,7 @@ export default function OrderPage() {
                   </p>
                 )}
                 {order.shippingAddress.countryCode && <p>{order.shippingAddress.countryCode}</p>}
-                {order.shippingAddress.phone && <p className="mt-2">Phone: {order.shippingAddress.phone}</p>}
+                {order.shippingAddress.phone && <p className="mt-2">{t('orders.shippingAddress.phone').replace('{phone}', order.shippingAddress.phone)}</p>}
               </div>
             </Card>
           )}
@@ -320,49 +325,49 @@ export default function OrderPage() {
         {/* Order Summary */}
         <div>
           <Card className="p-6 sticky top-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Summary</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('orders.orderSummary.title')}</h2>
             <div className="space-y-4 mb-6">
               {order.totals ? (
                 <>
                   <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
+                    <span>{t('orders.orderSummary.subtotal')}</span>
                     <span>{formatPrice(order.totals.subtotal, currency)}</span>
                   </div>
                   {order.totals.discount > 0 && (
                     <div className="flex justify-between text-gray-600">
-                      <span>Discount</span>
+                      <span>{t('orders.orderSummary.discount')}</span>
                       <span>-{formatPrice(order.totals.discount, currency)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-gray-600">
-                    <span>Shipping</span>
+                    <span>{t('orders.orderSummary.shipping')}</span>
                     <span>{formatPrice(order.totals.shipping, currency)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Tax</span>
+                    <span>{t('orders.orderSummary.tax')}</span>
                     <span>{formatPrice(order.totals.tax, currency)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex justify-between text-lg font-bold text-gray-900">
-                      <span>Total</span>
+                      <span>{t('orders.orderSummary.total')}</span>
                       <span>{formatPrice(order.totals.total, currency)}</span>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="text-gray-600">Loading totals...</div>
+                <div className="text-gray-600">{t('orders.orderSummary.loadingTotals')}</div>
               )}
             </div>
 
             <div className="space-y-3">
               <Link href="/products">
                 <Button variant="primary" className="w-full">
-                  Continue Shopping
+                  {t('orders.buttons.continueShopping')}
                 </Button>
               </Link>
               <Link href="/cart">
                 <Button variant="ghost" className="w-full">
-                  View Cart
+                  {t('orders.buttons.viewCart')}
                 </Button>
               </Link>
             </div>

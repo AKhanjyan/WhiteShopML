@@ -29,6 +29,8 @@ import enRefundPolicy from '../locales/en/refund-policy.json';
 import enProfile from '../locales/en/profile.json';
 import enCheckout from '../locales/en/checkout.json';
 import enRegister from '../locales/en/register.json';
+import enCategories from '../locales/en/categories.json';
+import enOrders from '../locales/en/orders.json';
 
 import hyCommon from '../locales/hy/common.json';
 import hyHome from '../locales/hy/home.json';
@@ -51,6 +53,8 @@ import hyRefundPolicy from '../locales/hy/refund-policy.json';
 import hyProfile from '../locales/hy/profile.json';
 import hyCheckout from '../locales/hy/checkout.json';
 import hyRegister from '../locales/hy/register.json';
+import hyCategories from '../locales/hy/categories.json';
+import hyOrders from '../locales/hy/orders.json';
 
 import ruCommon from '../locales/ru/common.json';
 import ruHome from '../locales/ru/home.json';
@@ -73,9 +77,11 @@ import ruRefundPolicy from '../locales/ru/refund-policy.json';
 import ruProfile from '../locales/ru/profile.json';
 import ruCheckout from '../locales/ru/checkout.json';
 import ruRegister from '../locales/ru/register.json';
+import ruCategories from '../locales/ru/categories.json';
+import ruOrders from '../locales/ru/orders.json';
 
 // Type definitions for better type safety
-type Namespace = 'common' | 'home' | 'product' | 'products' | 'attributes' | 'delivery' | 'about' | 'contact' | 'faq' | 'login' | 'cookies' | 'delivery-terms' | 'terms' | 'privacy' | 'support' | 'stores' | 'returns' | 'refund-policy' | 'profile' | 'checkout' | 'register';
+type Namespace = 'common' | 'home' | 'product' | 'products' | 'attributes' | 'delivery' | 'about' | 'contact' | 'faq' | 'login' | 'cookies' | 'delivery-terms' | 'terms' | 'privacy' | 'support' | 'stores' | 'returns' | 'refund-policy' | 'profile' | 'checkout' | 'register' | 'categories' | 'orders';
 type ProductField = 'title' | 'shortDescription' | 'longDescription';
 
 // Translation store - organized by language and namespace
@@ -103,6 +109,8 @@ const translations: Partial<Record<LanguageCode, Record<Namespace, any>>> = {
     profile: enProfile,
     checkout: enCheckout,
     register: enRegister,
+    categories: enCategories,
+    orders: enOrders,
   },
   hy: {
     common: hyCommon,
@@ -126,6 +134,8 @@ const translations: Partial<Record<LanguageCode, Record<Namespace, any>>> = {
     profile: hyProfile,
     checkout: hyCheckout,
     register: hyRegister,
+    categories: hyCategories,
+    orders: hyOrders,
   },
   ru: {
     common: ruCommon,
@@ -149,6 +159,8 @@ const translations: Partial<Record<LanguageCode, Record<Namespace, any>>> = {
     profile: ruProfile,
     checkout: ruCheckout,
     register: ruRegister,
+    categories: ruCategories,
+    orders: ruOrders,
   },
 };
 
@@ -236,7 +248,7 @@ export function t(lang: LanguageCode | undefined, path: string): string {
   }
 
   // Validate namespace
-  const validNamespaces: Namespace[] = ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'cookies', 'delivery-terms', 'terms', 'privacy', 'support', 'stores', 'returns', 'refund-policy', 'profile', 'checkout', 'register'];
+  const validNamespaces: Namespace[] = ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'cookies', 'delivery-terms', 'terms', 'privacy', 'support', 'stores', 'returns', 'refund-policy', 'profile', 'checkout', 'register', 'categories', 'orders'];
   if (!validNamespaces.includes(namespace)) {
     if (process.env.NODE_ENV === 'development') {
       console.warn(`[i18n] Invalid namespace: "${namespace}". Valid namespaces: ${validNamespaces.join(', ')}`);
@@ -579,7 +591,7 @@ export function clearTranslationCache(): void {
  * Get all available namespaces
  */
 export function getAvailableNamespaces(): Namespace[] {
-  return ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'cookies', 'delivery-terms', 'terms', 'privacy', 'support', 'stores', 'returns', 'refund-policy', 'profile', 'checkout', 'register'];
+  return ['common', 'home', 'product', 'products', 'attributes', 'delivery', 'about', 'contact', 'faq', 'login', 'cookies', 'delivery-terms', 'terms', 'privacy', 'support', 'stores', 'returns', 'refund-policy', 'profile', 'checkout', 'register', 'categories', 'orders'];
 }
 
 /**
