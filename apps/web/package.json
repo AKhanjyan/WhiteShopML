@@ -5,12 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "dev:webpack": "next dev --no-turbo",
-    "dev:clean": "rm -rf .next && next dev",
+    "dev:clean": "node -e \"require('fs').rmSync('.next', {recursive: true, force: true})\" && next dev",
     "prebuild": "cd ../../packages/db && npm run db:generate",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rm -rf .next"
+    "clean": "node -e \"require('fs').rmSync('.next', {recursive: true, force: true})\"",
+    "prisma:generate": "cd ../../packages/db && npm run db:generate",
+    "reset": "node -e \"require('fs').rmSync('.next', {recursive: true, force: true})\" && cd ../../packages/db && npm run db:generate"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

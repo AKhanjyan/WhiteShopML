@@ -1,16 +1,21 @@
+'use client';
+
 import { Card } from '@shop/ui';
+import { useTranslation } from '../../lib/i18n';
+import Link from 'next/link';
 
 /**
  * Privacy Policy page - displays privacy policy information
  */
 export default function PrivacyPage() {
+  const { t } = useTranslation();
   return (
     <div className="policy-page">
       <div className="policy-page-inner">
-        <h1 className="text-4xl font-bold text-gray-900">Privacy Policy</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{t('privacy.title')}</h1>
         <p className="text-gray-600">
-          Last updated:{' '}
-          {new Date().toLocaleDateString('en-US', {
+          {t('privacy.lastUpdated')}{' '}
+          {new Date().toLocaleDateString(undefined, {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -19,107 +24,96 @@ export default function PrivacyPage() {
 
         <div className="mt-8 space-y-6">
           <Card className="p-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Introduction</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.introduction.title')}</h2>
             <p className="text-gray-600">
-              At White-Shop, we are committed to protecting your privacy. This Privacy Policy explains how we
-              collect, use, disclose, and safeguard your information when you visit our website and use our
-              services.
+              {t('privacy.introduction.description1')}
             </p>
             <p className="text-gray-600">
-              Please read this privacy policy carefully. If you do not agree with the terms of this privacy
-              policy, please do not access the site.
+              {t('privacy.introduction.description2')}
             </p>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Information We Collect</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.informationWeCollect.title')}</h2>
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('privacy.informationWeCollect.personalInformation.title')}</h3>
                 <p className="text-gray-600">
-                  We may collect personal information that you voluntarily provide to us when you:
+                  {t('privacy.informationWeCollect.personalInformation.description')}
                 </p>
                 <ul className="list-disc list-inside text-gray-600 ml-4">
-                  <li>Register for an account</li>
-                  <li>Place an order</li>
-                  <li>Subscribe to our newsletter</li>
-                  <li>Contact us for customer support</li>
-                  <li>Participate in surveys or promotions</li>
+                  <li>{t('privacy.informationWeCollect.personalInformation.items.register')}</li>
+                  <li>{t('privacy.informationWeCollect.personalInformation.items.order')}</li>
+                  <li>{t('privacy.informationWeCollect.personalInformation.items.newsletter')}</li>
+                  <li>{t('privacy.informationWeCollect.personalInformation.items.contact')}</li>
+                  <li>{t('privacy.informationWeCollect.personalInformation.items.surveys')}</li>
                 </ul>
                 <p className="text-gray-600">
-                  This information may include your name, email address, phone number, shipping address,
-                  billing address, and payment information.
+                  {t('privacy.informationWeCollect.personalInformation.details')}
                 </p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Automatically Collected Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('privacy.informationWeCollect.automaticallyCollected.title')}</h3>
                 <p className="text-gray-600">
-                  When you visit our website, we automatically collect certain information about your device,
-                  including information about your web browser, IP address, time zone, and some of the cookies
-                  that are installed on your device.
+                  {t('privacy.informationWeCollect.automaticallyCollected.description')}
                 </p>
               </div>
             </div>
 
-            <h2 className="text-2xl font-semibold text-gray-900">How We Use Your Information</h2>
-            <p className="text-gray-600">We use the information we collect to:</p>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.howWeUse.title')}</h2>
+            <p className="text-gray-600">{t('privacy.howWeUse.description')}</p>
             <ul className="list-disc list-inside text-gray-600 ml-4">
-              <li>Process and fulfill your orders</li>
-              <li>Send you order confirmations and updates</li>
-              <li>Respond to your customer service requests</li>
-              <li>Send you marketing communications (with your consent)</li>
-              <li>Improve our website and services</li>
-              <li>Detect and prevent fraud</li>
-              <li>Comply with legal obligations</li>
+              <li>{t('privacy.howWeUse.items.process')}</li>
+              <li>{t('privacy.howWeUse.items.confirmations')}</li>
+              <li>{t('privacy.howWeUse.items.support')}</li>
+              <li>{t('privacy.howWeUse.items.marketing')}</li>
+              <li>{t('privacy.howWeUse.items.improve')}</li>
+              <li>{t('privacy.howWeUse.items.fraud')}</li>
+              <li>{t('privacy.howWeUse.items.legal')}</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Information Sharing and Disclosure</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.informationSharing.title')}</h2>
             <p className="text-gray-600">
-              We do not sell, trade, or rent your personal information to third parties. We may share your
-              information only in the following circumstances:
+              {t('privacy.informationSharing.description')}
             </p>
             <ul className="list-disc list-inside text-gray-600 ml-4">
               <li>
-                With service providers who assist us in operating our website and conducting our business
+                {t('privacy.informationSharing.items.providers')}
               </li>
-              <li>When required by law or to protect our rights</li>
-              <li>In connection with a business transfer or merger</li>
-              <li>With your explicit consent</li>
+              <li>{t('privacy.informationSharing.items.law')}</li>
+              <li>{t('privacy.informationSharing.items.transfer')}</li>
+              <li>{t('privacy.informationSharing.items.consent')}</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Data Security</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.dataSecurity.title')}</h2>
             <p className="text-gray-600">
-              We implement appropriate technical and organizational security measures to protect your
-              personal information against unauthorized access, alteration, disclosure, or destruction.
-              However, no method of transmission over the Internet or electronic storage is 100% secure.
+              {t('privacy.dataSecurity.description')}
             </p>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Your Rights</h2>
-            <p className="text-gray-600">You have the right to:</p>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.yourRights.title')}</h2>
+            <p className="text-gray-600">{t('privacy.yourRights.description')}</p>
             <ul className="list-disc list-inside text-gray-600 ml-4">
-              <li>Access your personal information</li>
-              <li>Correct inaccurate information</li>
-              <li>Request deletion of your information</li>
-              <li>Object to processing of your information</li>
-              <li>Request data portability</li>
-              <li>Withdraw consent at any time</li>
+              <li>{t('privacy.yourRights.items.access')}</li>
+              <li>{t('privacy.yourRights.items.correct')}</li>
+              <li>{t('privacy.yourRights.items.delete')}</li>
+              <li>{t('privacy.yourRights.items.object')}</li>
+              <li>{t('privacy.yourRights.items.portability')}</li>
+              <li>{t('privacy.yourRights.items.withdraw')}</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Cookies</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.cookies.title')}</h2>
             <p className="text-gray-600">
-              We use cookies and similar tracking technologies to track activity on our website and hold
-              certain information. You can instruct your browser to refuse all cookies or to indicate when a
-              cookie is being sent.
+              {t('privacy.cookies.description1')}
             </p>
             <p className="text-gray-600">
-              For more information about our use of cookies, please see our{' '}
-              <a href="/cookies" className="text-blue-600 hover:underline">
-                Cookie Policy
-              </a>
+              {t('privacy.cookies.description2')}{' '}
+              <Link href="/cookies" className="text-blue-600 hover:underline">
+                {t('privacy.cookies.linkText')}
+              </Link>
               .
             </p>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('privacy.contact.title')}</h2>
             <p className="text-gray-600">
-              If you have questions about this Privacy Policy, please contact us at:{' '}
+              {t('privacy.contact.description')}{' '}
               <a href="mailto:privacy@whiteshop.com" className="text-blue-600 hover:underline">
                 privacy@whiteshop.com
               </a>

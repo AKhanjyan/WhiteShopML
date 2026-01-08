@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { formatPrice, getStoredCurrency } from '../../lib/currency';
-import { getStoredLanguage } from '../../lib/language';
-import { getTranslation } from '../../lib/translations';
+import { useTranslation } from '../../lib/i18n';
 import { useAuth } from '../../lib/auth/AuthContext';
 
 interface Product {
@@ -45,10 +44,10 @@ function getWishlist(): string[] {
 export default function WishlistPage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
-  const [language, setLanguage] = useState(getStoredLanguage());
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
   // Track if we updated locally to prevent unnecessary re-fetch
@@ -116,20 +115,14 @@ export default function WishlistPage() {
       fetchWishlistProducts(updatedIds);
     };
 
-    const handleLanguageUpdate = () => {
-      setLanguage(getStoredLanguage());
-    };
-
     const handleCurrencyUpdate = () => {
       setCurrency(getStoredCurrency());
     };
 
     window.addEventListener('wishlist-updated', handleWishlistUpdate);
-    window.addEventListener('language-updated', handleLanguageUpdate);
     window.addEventListener('currency-updated', handleCurrencyUpdate);
     return () => {
       window.removeEventListener('wishlist-updated', handleWishlistUpdate);
-      window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
     };
   }, [fetchWishlistProducts]);
@@ -184,7 +177,7 @@ export default function WishlistPage() {
       const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
 
       if (!productDetails.variants || productDetails.variants.length === 0) {
-        alert('No variants available');
+        alert(t('common.alerts.noVariantsAvailable'));
         return;
       }
 
@@ -228,7 +221,7 @@ export default function WishlistPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{getTranslation('wishlist.title', language)}</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('common.wishlist.title')}</h1>
 
       {products.length > 0 ? (
         <>
@@ -240,7 +233,7 @@ export default function WishlistPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 <span className="text-base font-medium text-gray-700">
-                  {getTranslation('wishlist.totalCount', language)}: <span className="font-bold text-gray-900">{products.length}</span>
+                  {t('common.wishlist.totalCount')}: <span className="font-bold text-gray-900">{products.length}</span>
                 </span>
               </div>
             </div>
@@ -330,11 +323,11 @@ export default function WishlistPage() {
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
-                      {getTranslation('stock.inStock', language)}
+                      {t('common.stock.inStock')}
                     </span>
                   ) : (
                     <span className="text-sm font-medium text-red-600">
-                      {getTranslation('stock.outOfStock', language)}
+                      {t('common.stock.outOfStock')}
                     </span>
                   )}
                 </div>
@@ -347,12 +340,12 @@ export default function WishlistPage() {
                     disabled={!product.inStock || addingToCart.has(product.id)}
                     className="bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 font-semibold uppercase text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {addingToCart.has(product.id) ? 'Adding...' : 'ADD TO CART'}
+                    {addingToCart.has(product.id) ? t('common.messages.adding') : t('common.buttons.addToCart')}
                   </Button>
                   <button
                     onClick={() => handleRemove(product.id)}
                     className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                    aria-label="Remove from wishlist"
+                    aria-label={t('common.ariaLabels.removeFromWishlist')}
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -381,14 +374,14 @@ export default function WishlistPage() {
               />
             </svg>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {getTranslation('wishlist.empty', language)}
+              {t('common.wishlist.empty')}
             </h2>
             <p className="text-gray-600 mb-6">
-              {getTranslation('wishlist.emptyDescription', language)}
+              {t('common.wishlist.emptyDescription')}
             </p>
             <Link href="/products">
               <Button variant="primary" size="lg">
-                {getTranslation('wishlist.browseProducts', language)}
+                {t('common.buttons.browseProducts')}
               </Button>
             </Link>
           </div>

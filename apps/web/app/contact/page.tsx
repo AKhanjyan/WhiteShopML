@@ -4,6 +4,7 @@ import { Button, Input } from '@shop/ui';
 import { useState, useEffect } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { getStoredLanguage } from '@/lib/language';
+import { useTranslation } from '../../lib/i18n';
 import contactData from '../../../../config/contact.json';
 
 // Icons
@@ -27,6 +28,7 @@ const MapPinIcon = () => (
 );
 
 export default function ContactPage() {
+  const { t } = useTranslation();
   const [language, setLanguage] = useState<'en' | 'ru' | 'am'>('en');
   const [formData, setFormData] = useState({
     name: '',
@@ -74,9 +76,9 @@ export default function ContactPage() {
                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-700">
                   <PhoneIcon />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Call to Us:</h3>
+                <h3 className="text-xl font-semibold text-gray-900">{t('contact.callToUs.title')}</h3>
               </div>
-              <p className="text-gray-600 mb-2">We're available 24/7, 7 days a week.</p>
+              <p className="text-gray-600 mb-2">{t('contact.callToUs.description')}</p>
               <a href={`tel:${contactData.phone}`} className="text-orange-500 hover:text-orange-600 font-medium">
                 {contactData.phone}
               </a>
@@ -88,11 +90,11 @@ export default function ContactPage() {
                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-700">
                   <EnvelopeIcon />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Write to Us:</h3>
+                <h3 className="text-xl font-semibold text-gray-900">{t('contact.writeToUs.title')}</h3>
               </div>
-              <p className="text-gray-600 mb-2">Fill out our form and we will contact you within 24 hours.</p>
+              <p className="text-gray-600 mb-2">{t('contact.writeToUs.description')}</p>
               <a href={`mailto:${contactData.email}`} className="text-orange-500 hover:text-orange-600 font-medium">
-                Email: {contactData.email}
+                {t('contact.writeToUs.emailLabel')} {contactData.email}
               </a>
             </div>
 
@@ -102,11 +104,11 @@ export default function ContactPage() {
                 <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-700">
                   <MapPinIcon />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">Headquarter:</h3>
+                <h3 className="text-xl font-semibold text-gray-900">{t('contact.headquarter.title')}</h3>
               </div>
               <div className="text-gray-600 mb-2 space-y-1">
-                <p>Monday - Friday: 9:00-20:00</p>
-                <p>Saturday: 11:00 - 15:00</p>
+                <p>{t('contact.headquarter.hours.weekdays')}</p>
+                <p>{t('contact.headquarter.hours.saturday')}</p>
               </div>
               <p className="text-orange-500 hover:text-orange-600 font-medium">
                 {address}
@@ -119,7 +121,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
-                  Name *
+                  {t('contact.form.name')}
                 </label>
                 <Input
                   id="name"
@@ -129,12 +131,12 @@ export default function ContactPage() {
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full"
-                  placeholder="Your name"
+                  placeholder={t('contact.form.namePlaceholder')}
                 />
               </div>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-                  E-mail *
+                  {t('contact.form.email')}
                 </label>
                 <Input
                   id="email"
@@ -144,12 +146,12 @@ export default function ContactPage() {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full"
-                  placeholder="your@email.com"
+                  placeholder={t('contact.form.emailPlaceholder')}
                 />
               </div>
               <div>
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-900 mb-2">
-                  Subject *
+                  {t('contact.form.subject')}
                 </label>
                 <Input
                   id="subject"
@@ -159,12 +161,12 @@ export default function ContactPage() {
                   value={formData.subject}
                   onChange={handleChange}
                   className="w-full"
-                  placeholder="What is this about?"
+                  placeholder={t('contact.form.subjectPlaceholder')}
                 />
               </div>
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-900 mb-2">
-                  Message
+                  {t('contact.form.message')}
                 </label>
                 <textarea
                   id="message"
@@ -173,7 +175,7 @@ export default function ContactPage() {
                   value={formData.message}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  placeholder="Your message..."
+                  placeholder={t('contact.form.messagePlaceholder')}
                 />
               </div>
               <Button
@@ -181,7 +183,7 @@ export default function ContactPage() {
                 variant="primary"
                 className="w-full bg-gray-900 text-white hover:bg-gray-800 rounded-md py-3 font-semibold uppercase tracking-wide"
               >
-                Submit
+                {t('contact.form.submit')}
               </Button>
             </form>
           </div>

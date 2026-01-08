@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { formatPrice, getStoredCurrency } from '../lib/currency';
 import { apiClient } from '../lib/api-client';
 import { useAuth } from '../lib/auth/AuthContext';
+import { useTranslation } from '../lib/i18n';
 import { CompareIcon } from './icons/CompareIcon';
 import { CartIcon as CartPngIcon } from './icons/CartIcon';
 import { ProductLabels } from './ProductLabels';
@@ -107,6 +108,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
   const isCompact = viewMode === 'grid-3';
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
   const [currency, setCurrency] = useState(getStoredCurrency());
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isInCompare, setIsInCompare] = useState(false);
@@ -220,7 +222,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         setIsInCompare(false);
       } else {
         if (compare.length >= 4) {
-          alert('You can compare maximum 4 products');
+          alert(t('common.alerts.compareMaxReached'));
           return;
         }
         compare.push(product.id);
@@ -246,7 +248,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
     // Validate product slug before making API call
     if (!product.slug || product.slug.trim() === '' || product.slug.includes(' ')) {
       console.error('❌ [PRODUCT CARD] Invalid product slug:', product.slug);
-      alert('Invalid product. Please refresh the page and try again.');
+      alert(t('common.alerts.invalidProduct'));
       return;
     }
 
@@ -276,7 +278,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
         
         if (!productDetails.variants || productDetails.variants.length === 0) {
-          alert('No variants available');
+          alert(t('common.alerts.noVariantsAvailable'));
           setIsAddingToCart(false);
           return;
         }
@@ -300,7 +302,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
             totalQuantity,
             availableStock: variant.stock
           });
-          alert('No more stock available');
+          alert(t('common.alerts.noMoreStockAvailable'));
           setIsAddingToCart(false);
           return;
         }
@@ -327,7 +329,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         
         // Check if error is about product not found
         if (error?.message?.includes('does not exist') || error?.message?.includes('404') || error?.status === 404) {
-          alert('Product not found. Please refresh the page and try again.');
+          alert(t('common.alerts.productNotFound'));
         } else {
           // Если не удалось добавить в localStorage, перенаправляем на login
           router.push(`/login?redirect=/products`);
@@ -358,7 +360,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${encodedSlug}`);
 
       if (!productDetails.variants || productDetails.variants.length === 0) {
-        alert('No variants available');
+        alert(t('common.alerts.noVariantsAvailable'));
         return;
       }
 
@@ -380,7 +382,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       
       // Check if error is about product not found
       if (error?.message?.includes('does not exist') || error?.message?.includes('404') || error?.status === 404 || error?.statusCode === 404) {
-        alert('Product not found. Please refresh the page and try again.');
+        alert(t('common.alerts.productNotFound'));
         setIsAddingToCart(false);
         return;
       }
@@ -389,7 +391,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
       if (error.response?.data?.detail?.includes('No more stock available') || 
           error.response?.data?.detail?.includes('exceeds available stock') ||
           error.response?.data?.title === 'Insufficient stock') {
-        alert('No more stock available');
+        alert(t('common.alerts.noMoreStockAvailable'));
         setIsAddingToCart(false);
         return;
       }
@@ -399,7 +401,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
         router.push(`/login?redirect=/products`);
       } else {
         // Generic error message
-        alert('Failed to add product to cart. Please try again.');
+        alert(t('common.alerts.failedToAddToCart'));
       }
     } finally {
       setIsAddingToCart(false);
@@ -443,7 +445,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                 {product.title}
               </h3>
               <p className="text-base sm:text-lg text-gray-500 mt-1">
-                {product.brand?.name || 'Grocery'}
+                {product.brand?.name || t('common.defaults.category')}
               </p>
             </Link>
             {/* Available Colors */}
@@ -507,8 +509,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                     ? 'border-gray-900 text-gray-900 bg-white shadow-sm'
                     : 'border-gray-200 text-gray-700 bg-white hover:border-gray-300 hover:bg-gray-50'
                 }`}
-                title={isInCompare ? 'Remove from compare' : 'Add to compare'}
-                aria-label={isInCompare ? 'Remove from compare' : 'Add to compare'}
+                title={isInCompare ? t('common.messages.removedFromCompare') : t('common.messages.addedToCompare')}
+                aria-label={isInCompare ? t('common.messages.removedFromCompare') : t('common.messages.addedToCompare')}
               >
                 <CompareIcon isActive={isInCompare} />
               </button>
@@ -521,8 +523,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                     ? 'bg-red-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
-                title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-                aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                title={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
+                aria-label={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
               >
                 <WishlistIcon filled={isInWishlist} />
               </button>
@@ -536,8 +538,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                     ? 'bg-gray-100 text-gray-700 hover:bg-green-600 hover:text-white'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
-                title={product.inStock ? 'Add to cart' : 'Out of stock'}
-                aria-label={product.inStock ? 'Add to cart' : 'Out of stock'}
+                title={product.inStock ? t('common.buttons.addToCart') : t('common.stock.outOfStock')}
+                aria-label={product.inStock ? t('common.buttons.addToCart') : t('common.stock.outOfStock')}
               >
                 {isAddingToCart ? (
                   <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -591,8 +593,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                 ? 'border-gray-900 text-gray-900 bg-white shadow-sm'
                 : 'border-gray-200 text-gray-700 bg-white hover:border-gray-300 hover:bg-gray-50'
             }`}
-            title={isInCompare ? 'Remove from compare' : 'Add to compare'}
-            aria-label={isInCompare ? 'Remove from compare' : 'Add to compare'}
+            title={isInCompare ? t('common.messages.removedFromCompare') : t('common.messages.addedToCompare')}
+            aria-label={isInCompare ? t('common.ariaLabels.removeFromCompare') : t('common.ariaLabels.addToCompare')}
           >
             <CompareIcon isActive={isInCompare} size={isCompact ? 16 : 18} />
           </button>
@@ -605,8 +607,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                 ? 'bg-red-600 text-white shadow-lg'
                 : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md hover:shadow-lg'
             }`}
-            title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-            aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            title={isInWishlist ? t('common.messages.removedFromWishlist') : t('common.messages.addedToWishlist')}
+            aria-label={isInWishlist ? t('common.ariaLabels.removeFromWishlist') : t('common.ariaLabels.addToWishlist')}
           >
             {isCompact ? (
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -634,9 +636,9 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
             {product.title}
           </h3>
           
-          {/* Category - Using brand name as category or default to "Grocery" */}
+          {/* Category - Using brand name as category or default */}
           <p className={`${isCompact ? 'text-sm' : 'text-lg'} text-gray-500 ${isCompact ? 'mb-1' : 'mb-2'}`}>
-            {product.brand?.name || 'Grocery'}
+            {product.brand?.name || t('common.defaults.category')}
           </p>
         </Link>
 
@@ -651,7 +653,7 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                   className={`${isCompact ? 'w-4 h-4' : 'w-5 h-5'} rounded-full border border-gray-300 flex-shrink-0`}
                   style={{ backgroundColor: colorHex }}
                   title={color}
-                  aria-label={`Color: ${color}`}
+                  aria-label={t('common.ariaLabels.color').replace('{color}', color)}
                 />
               );
             })}
@@ -696,8 +698,8 @@ export function ProductCard({ product, viewMode = 'grid-3' }: ProductCardProps) 
                 ? 'bg-transparent text-gray-600 hover:bg-green-600 hover:text-white hover:shadow-md'
                 : 'bg-transparent text-gray-400 cursor-not-allowed'
             }`}
-            title={product.inStock ? 'Add to cart' : 'Out of stock'}
-            aria-label={product.inStock ? 'Add to cart' : 'Out of stock'}
+            title={product.inStock ? t('common.buttons.addToCart') : t('common.stock.outOfStock')}
+            aria-label={product.inStock ? t('common.ariaLabels.addToCart') : t('common.ariaLabels.outOfStock')}
           >
             {isAddingToCart ? (
               <svg className={`animate-spin ${isCompact ? 'h-5 w-5' : 'h-6 w-6'}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

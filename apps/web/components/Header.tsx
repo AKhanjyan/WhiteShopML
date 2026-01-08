@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { getStoredCurrency, setStoredCurrency, type CurrencyCode, CURRENCIES, formatPrice } from '../lib/currency';
 import { getStoredLanguage, setStoredLanguage } from '../lib/language';
+import { useTranslation } from '../lib/i18n';
 import { useAuth } from '../lib/auth/AuthContext';
 import { apiClient } from '../lib/api-client';
 import { CART_KEY, getCompareCount, getWishlistCount } from '../lib/storageCounts';
@@ -24,11 +25,12 @@ type SocialLinks = {
 const socialLinks: SocialLinks =
   (contactData as typeof contactData & { social?: SocialLinks }).social || {};
 
+// Navigation links will be translated dynamically using useTranslation hook
 const primaryNavLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/categories', label: 'Products' },
-  { href: '/about', label: 'About Us' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/', translationKey: 'common.navigation.home' },
+  { href: '/categories', translationKey: 'common.navigation.products' },
+  { href: '/about', translationKey: 'common.navigation.about' },
+  { href: '/contact', translationKey: 'common.navigation.contact' },
 ];
 
 interface Category {
@@ -171,6 +173,7 @@ function HeaderSearchSync({
 export function Header() {
   const router = useRouter();
   const { isLoggedIn, logout, isAdmin } = useAuth();
+  const { t } = useTranslation();
   const [compareCount, setCompareCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
@@ -577,7 +580,7 @@ export function Header() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-pink-600 transition-colors"
-                  aria-label="Instagram"
+                  aria-label={t('common.ariaLabels.instagram')}
                 >
                   <Instagram className="w-4 h-4" />
                 </a>
@@ -586,7 +589,7 @@ export function Header() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-blue-600 transition-colors"
-                  aria-label="Facebook"
+                  aria-label={t('common.ariaLabels.facebook')}
                 >
                   <Facebook className="w-4 h-4" />
                 </a>
@@ -595,7 +598,7 @@ export function Header() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-blue-700 transition-colors"
-                  aria-label="LinkedIn"
+                  aria-label={t('common.ariaLabels.linkedin')}
                 >
                   <Linkedin className="w-4 h-4" />
                 </a>
@@ -652,7 +655,7 @@ export function Header() {
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                aria-label="Open navigation menu"
+                aria-label={t('common.ariaLabels.openMenu')}
                 aria-expanded={mobileMenuOpen}
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -714,7 +717,7 @@ export function Header() {
           {/* Navigation Links - Centered */}
           <nav className="order-3 hidden w-full items-center justify-center gap-1 md:order-none md:flex md:flex-1">
             <Link href="/" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap">
-              Home
+              {t('common.navigation.home')}
             </Link>
             <div 
               className="relative" 
@@ -736,7 +739,7 @@ export function Header() {
                 href="/categories"
                 className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap flex items-center gap-1"
               >
-                Products
+                {t('common.navigation.products')}
                 <ChevronDownIcon />
               </Link>
               {showProductsMenu && (
@@ -749,10 +752,10 @@ export function Header() {
                         className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-all duration-150 font-medium border-b border-gray-100"
                         onClick={() => setShowProductsMenu(false)}
                       >
-                        All Products
+                        {t('common.navigation.products')}
                       </Link>
                       {loadingCategories ? (
-                        <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
+                        <div className="px-4 py-2 text-sm text-gray-500">{t('common.messages.loading')}</div>
                       ) : (
                         flattenCategories(categories).map((category) => (
                           <Link
@@ -771,10 +774,10 @@ export function Header() {
               )}
             </div>
             <Link href="/about" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap">
-              About Us
+              {t('common.navigation.about')}
             </Link>
             <Link href="/contact" className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium whitespace-nowrap">
-              Contact
+              {t('common.navigation.contact')}
             </Link>
           </nav>
 
@@ -788,7 +791,7 @@ export function Header() {
                 setShowCurrency(false);
               }}
               className="w-11 h-11 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-colors duration-150"
-              aria-label="Search"
+              aria-label={t('common.ariaLabels.search')}
             >
               <SearchIcon />
             </button>
@@ -889,7 +892,7 @@ export function Header() {
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-10 h-10 rounded-full border border-gray-200 text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-colors"
-                aria-label="Close navigation menu"
+                aria-label={t('common.ariaLabels.closeMenu')}
               >
                 <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -907,7 +910,7 @@ export function Header() {
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center justify-between px-4 py-3 hover:bg-gray-50"
                     >
-                      {link.label}
+                      {t(link.translationKey)}
                       <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -921,7 +924,7 @@ export function Header() {
                   >
                     <span className="flex items-center gap-2 normal-case font-medium text-gray-700">
                       <WishlistIcon />
-                      Wishlist
+                      {t('common.navigation.wishlist')}
                     </span>
                     {wishlistCount > 0 && (
                       <span className="rounded-full bg-gray-900 px-2 py-0.5 text-xs font-semibold text-white">
@@ -1051,7 +1054,7 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search for products"
+                placeholder={t('common.placeholders.search')}
                 className="flex-1 h-11 px-4 border-2 border-gray-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent text-sm placeholder:text-gray-400"
               />
               

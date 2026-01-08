@@ -1,23 +1,27 @@
+'use client';
+
 import { Card, Button, Input } from '@shop/ui';
 import Link from 'next/link';
+import { useTranslation } from '../../lib/i18n';
 
 /**
  * Support page - provides customer support options and resources
  */
 export default function SupportPage() {
+  const { t } = useTranslation();
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">Customer Support</h1>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('support.title')}</h1>
       <p className="text-gray-600 mb-8">
-        We're here to help! Choose the best way to get in touch with us.
+        {t('support.description')}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Contact Us</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('support.contactUs.title')}</h2>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Email</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.email')}</p>
               <a
                 href="mailto:support@whiteshop.com"
                 className="text-blue-600 hover:underline"
@@ -26,7 +30,7 @@ export default function SupportPage() {
               </a>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Phone</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.phone')}</p>
               <a
                 href="tel:+1234567890"
                 className="text-blue-600 hover:underline"
@@ -35,137 +39,137 @@ export default function SupportPage() {
               </a>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Business Hours</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">{t('support.contactUs.businessHours')}</p>
               <p className="text-gray-600">
-                Monday - Friday: 9:00 AM - 6:00 PM<br />
-                Saturday: 10:00 AM - 4:00 PM<br />
-                Sunday: Closed
+                {t('support.contactUs.hours.weekdays')}<br />
+                {t('support.contactUs.hours.saturday')}<br />
+                {t('support.contactUs.hours.sunday')}
               </p>
             </div>
           </div>
         </Card>
 
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Links</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('support.quickLinks.title')}</h2>
           <div className="space-y-3">
             <Link
               href="/faq"
               className="block text-blue-600 hover:text-blue-700 hover:underline"
             >
-              Frequently Asked Questions →
+              {t('support.quickLinks.faq')}
             </Link>
             <Link
               href="/delivery"
               className="block text-blue-600 hover:text-blue-700 hover:underline"
             >
-              Delivery & Return Information →
+              {t('support.quickLinks.delivery')}
             </Link>
             <Link
               href="/returns"
               className="block text-blue-600 hover:text-blue-700 hover:underline"
             >
-              Return Policy →
+              {t('support.quickLinks.returns')}
             </Link>
             <Link
               href="/contact"
               className="block text-blue-600 hover:text-blue-700 hover:underline"
             >
-              Contact Form →
+              {t('support.quickLinks.contact')}
             </Link>
           </div>
         </Card>
       </div>
 
       <Card className="p-6 mb-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Send us a Message</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('support.sendMessage.title')}</h2>
         <form className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Name
+              {t('support.sendMessage.form.name')}
             </label>
             <Input
               id="name"
               type="text"
-              placeholder="Your name"
+              placeholder={t('support.sendMessage.form.namePlaceholder')}
               className="w-full"
             />
           </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+              {t('support.sendMessage.form.email')}
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="your@email.com"
+              placeholder={t('support.sendMessage.form.emailPlaceholder')}
               className="w-full"
             />
           </div>
           <div>
             <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-              Subject
+              {t('support.sendMessage.form.subject')}
             </label>
             <Input
               id="subject"
               type="text"
-              placeholder="What can we help you with?"
+              placeholder={t('support.sendMessage.form.subjectPlaceholder')}
               className="w-full"
             />
           </div>
           <div>
             <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-              Message
+              {t('support.sendMessage.form.message')}
             </label>
             <textarea
               id="message"
               rows={6}
-              placeholder="Please describe your issue or question..."
+              placeholder={t('support.sendMessage.form.messagePlaceholder')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
           <Button variant="primary" className="w-full">
-            Send Message
+            {t('support.sendMessage.form.submit')}
           </Button>
         </form>
       </Card>
 
       <Card className="p-6 bg-gray-50">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Common Support Topics</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('support.commonTopics.title')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Order Issues</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('support.commonTopics.orderIssues.title')}</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Order tracking</li>
-              <li>• Order cancellation</li>
-              <li>• Order modification</li>
-              <li>• Missing items</li>
+              <li>• {t('support.commonTopics.orderIssues.items.tracking')}</li>
+              <li>• {t('support.commonTopics.orderIssues.items.cancellation')}</li>
+              <li>• {t('support.commonTopics.orderIssues.items.modification')}</li>
+              <li>• {t('support.commonTopics.orderIssues.items.missing')}</li>
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Account Help</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('support.commonTopics.accountHelp.title')}</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Password reset</li>
-              <li>• Account settings</li>
-              <li>• Order history</li>
-              <li>• Profile updates</li>
+              <li>• {t('support.commonTopics.accountHelp.items.password')}</li>
+              <li>• {t('support.commonTopics.accountHelp.items.settings')}</li>
+              <li>• {t('support.commonTopics.accountHelp.items.history')}</li>
+              <li>• {t('support.commonTopics.accountHelp.items.profile')}</li>
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Payment & Billing</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('support.commonTopics.paymentBilling.title')}</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Payment methods</li>
-              <li>• Refund status</li>
-              <li>• Billing questions</li>
-              <li>• Payment issues</li>
+              <li>• {t('support.commonTopics.paymentBilling.items.methods')}</li>
+              <li>• {t('support.commonTopics.paymentBilling.items.refund')}</li>
+              <li>• {t('support.commonTopics.paymentBilling.items.billing')}</li>
+              <li>• {t('support.commonTopics.paymentBilling.items.issues')}</li>
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Product Questions</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('support.commonTopics.productQuestions.title')}</h3>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Product availability</li>
-              <li>• Product specifications</li>
-              <li>• Size guides</li>
-              <li>• Warranty information</li>
+              <li>• {t('support.commonTopics.productQuestions.items.availability')}</li>
+              <li>• {t('support.commonTopics.productQuestions.items.specifications')}</li>
+              <li>• {t('support.commonTopics.productQuestions.items.size')}</li>
+              <li>• {t('support.commonTopics.productQuestions.items.warranty')}</li>
             </ul>
           </div>
         </div>

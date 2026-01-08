@@ -1,130 +1,134 @@
+'use client';
+
 import { Card } from '@shop/ui';
+import { useTranslation } from '../../lib/i18n';
 
 /**
  * Terms of Service page - displays terms and conditions
  */
 export default function TermsPage() {
+  const { t } = useTranslation();
   return (
     <div className="policy-page">
       <div className="policy-page-inner">
-        <h1 className="text-4xl font-bold text-gray-900">Terms of Service</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{t('terms.title')}</h1>
         <p className="text-gray-600">
-          Last updated:{' '}
-          {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {t('terms.lastUpdated')}{' '}
+          {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
       
         <div className="mt-8 space-y-6">
         <Card className="p-6">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Agreement to Terms</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.agreementToTerms.title')}</h2>
           <p className="text-gray-600 mb-4">
-            By accessing or using our website, you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree with any of these terms, you are prohibited from using or accessing this site.
+            {t('terms.agreementToTerms.description1')}
           </p>
           <p className="text-gray-600">
-            The materials contained in this website are protected by applicable copyright and trademark law.
+            {t('terms.agreementToTerms.description2')}
           </p>
      
 
       
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Use License</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.useLicense.title')}</h2>
           <p className="text-gray-600 mb-4">
-            Permission is granted to temporarily download one copy of the materials on our website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+            {t('terms.useLicense.description')}
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-            <li>Modify or copy the materials</li>
-            <li>Use the materials for any commercial purpose or for any public display</li>
-            <li>Attempt to reverse engineer any software contained on the website</li>
-            <li>Remove any copyright or other proprietary notations from the materials</li>
-            <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
+            <li>{t('terms.useLicense.restrictions.modify')}</li>
+            <li>{t('terms.useLicense.restrictions.commercial')}</li>
+            <li>{t('terms.useLicense.restrictions.reverse')}</li>
+            <li>{t('terms.useLicense.restrictions.copyright')}</li>
+            <li>{t('terms.useLicense.restrictions.transfer')}</li>
           </ul>
        
 
        
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Account Registration</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.accountRegistration.title')}</h2>
           <p className="text-gray-600 mb-4">
-            To access certain features of our website, you may be required to register for an account. When you register, you agree to:
+            {t('terms.accountRegistration.description')}
           </p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-            <li>Provide accurate, current, and complete information</li>
-            <li>Maintain and update your information to keep it accurate</li>
-            <li>Maintain the security of your password and identification</li>
-            <li>Accept all responsibility for activities that occur under your account</li>
-            <li>Notify us immediately of any unauthorized use of your account</li>
+            <li>{t('terms.accountRegistration.requirements.accurate')}</li>
+            <li>{t('terms.accountRegistration.requirements.maintain')}</li>
+            <li>{t('terms.accountRegistration.requirements.security')}</li>
+            <li>{t('terms.accountRegistration.requirements.responsibility')}</li>
+            <li>{t('terms.accountRegistration.requirements.notify')}</li>
           </ul>
    
 
       
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Product Information</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.productInformation.title')}</h2>
           <p className="text-gray-600 mb-4">
-            We strive to provide accurate product descriptions, images, and pricing. However, we do not warrant that product descriptions or other content on this site is accurate, complete, reliable, current, or error-free.
+            {t('terms.productInformation.description1')}
           </p>
           <p className="text-gray-600">
-            If a product offered by us is not as described, your sole remedy is to return it in unused condition.
+            {t('terms.productInformation.description2')}
           </p>
      
 
       
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Pricing and Payment</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.pricingAndPayment.title')}</h2>
           <p className="text-gray-600 mb-4">
-            All prices are displayed in the currency selected and are subject to change without notice. We reserve the right to modify prices at any time.
+            {t('terms.pricingAndPayment.description1')}
           </p>
           <p className="text-gray-600 mb-4">
-            Payment must be received before we ship your order. We accept various payment methods as indicated during checkout.
+            {t('terms.pricingAndPayment.description2')}
           </p>
           <p className="text-gray-600">
-            All sales are final unless otherwise stated. Refunds are subject to our return policy.
+            {t('terms.pricingAndPayment.description3')}
           </p>
      
 
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shipping and Delivery</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.shippingAndDelivery.title')}</h2>
           <p className="text-gray-600 mb-4">
-            We will make every effort to ship your order within the timeframes specified. However, shipping times are estimates and not guaranteed.
+            {t('terms.shippingAndDelivery.description1')}
           </p>
           <p className="text-gray-600">
-            Risk of loss and title for products purchased from us pass to you upon delivery to the carrier. You are responsible for filing any claims with carriers for damaged or lost shipments.
+            {t('terms.shippingAndDelivery.description2')}
           </p>
 
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Returns and Refunds</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.returnsAndRefunds.title')}</h2>
           <p className="text-gray-600 mb-4">
-            Our return policy is detailed on our Returns page. By making a purchase, you agree to our return policy.
+            {t('terms.returnsAndRefunds.description1')}
           </p>
           <p className="text-gray-600">
-            We reserve the right to refuse returns that do not meet our return policy requirements.
+            {t('terms.returnsAndRefunds.description2')}
           </p>
 
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Prohibited Uses</h2>
-          <p className="text-gray-600 mb-2">You may not use our website:</p>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.prohibitedUses.title')}</h2>
+          <p className="text-gray-600 mb-2">{t('terms.prohibitedUses.description')}</p>
           <ul className="list-disc list-inside text-gray-600 space-y-1 ml-4">
-            <li>In any way that violates any applicable law or regulation</li>
-            <li>To transmit any material that is abusive, harassing, or otherwise objectionable</li>
-            <li>To impersonate or attempt to impersonate the company or any employee</li>
-            <li>In any way that infringes upon the rights of others</li>
-            <li>To engage in any automated use of the system</li>
+            <li>{t('terms.prohibitedUses.items.violate')}</li>
+            <li>{t('terms.prohibitedUses.items.transmit')}</li>
+            <li>{t('terms.prohibitedUses.items.impersonate')}</li>
+            <li>{t('terms.prohibitedUses.items.infringe')}</li>
+            <li>{t('terms.prohibitedUses.items.automated')}</li>
           </ul>
     
 
        
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Limitation of Liability</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.limitationOfLiability.title')}</h2>
           <p className="text-gray-600">
-            In no event shall White-Shop or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on our website, even if we or an authorized representative has been notified orally or in writing of the possibility of such damage.
+            {t('terms.limitationOfLiability.description')}
           </p>
     
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Revisions and Errata</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.revisionsAndErrata.title')}</h2>
           <p className="text-gray-600">
-            The materials appearing on our website could include technical, typographical, or photographic errors. We do not warrant that any of the materials on its website are accurate, complete, or current. We may make changes to the materials contained on its website at any time without notice.
+            {t('terms.revisionsAndErrata.description')}
           </p>
  
 
         
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Governing Law</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.governingLaw.title')}</h2>
           <p className="text-gray-600">
-            These terms and conditions are governed by and construed in accordance with applicable laws. Any disputes relating to these terms shall be subject to the exclusive jurisdiction of the courts in the jurisdiction where our business is located.
+            {t('terms.governingLaw.description')}
           </p>
      
 
        
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Contact Information</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">{t('terms.contactInformation.title')}</h2>
           <p className="text-gray-600">
-            If you have any questions about these Terms of Service, please contact us at:{' '}
+            {t('terms.contactInformation.description')}{' '}
             <a href="mailto:legal@whiteshop.com" className="text-blue-600 hover:underline">
               legal@whiteshop.com
             </a>

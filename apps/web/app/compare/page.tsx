@@ -8,8 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { formatPrice, getStoredCurrency } from '../../lib/currency';
-import { getStoredLanguage } from '../../lib/language';
-import { getTranslation } from '../../lib/translations';
+import { useTranslation } from '../../lib/i18n';
 import { useAuth } from '../../lib/auth/AuthContext';
 
 interface Product {
@@ -48,30 +47,14 @@ function getCompare(): string[] {
 export default function ComparePage() {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [currency, setCurrency] = useState(getStoredCurrency());
-  const [language, setLanguage] = useState(getStoredLanguage());
   const [addingToCart, setAddingToCart] = useState<Set<string>>(new Set());
   // Track if we updated locally to prevent unnecessary re-fetch
   const isLocalUpdateRef = useRef(false);
-
-  const translateLabel = useCallback(
-    (key: string, fallback?: string) => {
-      const value = getTranslation(key, language);
-      if (value && value !== key) {
-        return value;
-      }
-      const derived = fallback || key.split('.').pop() || key;
-      const cleaned = derived
-        .replace(/_/g, ' ')
-        .replace(/([A-Z])/g, ' $1')
-        .trim();
-      return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-    },
-    [language]
-  );
 
   /**
    * Fetch compare products for provided ids and update UI state.
@@ -215,7 +198,7 @@ export default function ComparePage() {
       const productDetails = await apiClient.get<ProductDetails>(`/api/v1/products/${product.slug}`);
 
       if (!productDetails.variants || productDetails.variants.length === 0) {
-        alert('No variants available');
+        alert(t('common.alerts.noVariantsAvailable'));
         return;
       }
 
@@ -262,10 +245,10 @@ export default function ComparePage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">{translateLabel('compare.title', 'Compare Products')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('common.compare.title')}</h1>
         {products.length > 0 && (
           <p className="text-sm text-gray-600">
-            {products.length} of 4 {products.length === 1 ? translateLabel('compare.product', 'Product') : translateLabel('compare.products', 'Products')}
+            {products.length} of 4 {products.length === 1 ? t('common.compare.product') : t('common.compare.products')}
           </p>
         )}
       </div>
@@ -277,7 +260,7 @@ export default function ComparePage() {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 min-w-[150px] sticky left-0 bg-gray-50 z-10">
-                    {translateLabel('compare.characteristic', 'Characteristic')}
+                    {t('common.compare.characteristic')}
                   </th>
                   {products.map((product) => (
                     <th
@@ -287,8 +270,8 @@ export default function ComparePage() {
                       <button
                         onClick={(e) => handleRemove(e, product.id)}
                         className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
-                        title={translateLabel('compare.remove', 'Remove')}
-                        aria-label={translateLabel('compare.remove', 'Remove')}
+                        title={t('common.buttons.remove')}
+                        aria-label={t('common.buttons.remove')}
                       >
                         <svg
                           className="w-4 h-4"
@@ -312,7 +295,7 @@ export default function ComparePage() {
                 {/* Изображение */}
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                    {translateLabel('compare.image', 'Image')}
+                    {t('common.compare.image')}
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4 text-center">
@@ -329,7 +312,7 @@ export default function ComparePage() {
                             />
                           ) : (
                             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-gray-400 text-xs">No Image</span>
+                              <span className="text-gray-400 text-xs">{t('common.messages.noImage')}</span>
                             </div>
                           )}
                         </div>
@@ -341,7 +324,7 @@ export default function ComparePage() {
                 {/* Название */}
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                    {translateLabel('compare.name', 'Name')}
+                    {t('common.compare.name')}
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4">
@@ -358,7 +341,7 @@ export default function ComparePage() {
                 {/* Бренд */}
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                    {translateLabel('compare.brand', 'Brand')}
+                    {t('common.compare.brand')}
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4 text-center text-sm text-gray-600">
@@ -370,7 +353,7 @@ export default function ComparePage() {
                 {/* Цена */}
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                    {translateLabel('compare.price', 'Price')}
+                    {t('common.compare.price')}
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4 text-center">
@@ -396,7 +379,7 @@ export default function ComparePage() {
                 {/* Наличие */}
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                    {translateLabel('compare.availability', 'Availability')}
+                    {t('common.compare.availability')}
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4 text-center">
@@ -408,8 +391,8 @@ export default function ComparePage() {
                         }`}
                       >
                         {product.inStock
-                          ? getTranslation('stock.inStock', language)
-                          : getTranslation('stock.outOfStock', language)}
+                          ? t('common.stock.inStock')
+                          : t('common.stock.outOfStock')}
                       </span>
                     </td>
                   ))}
@@ -418,7 +401,7 @@ export default function ComparePage() {
                 {/* Действия */}
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 text-sm font-medium text-gray-700 bg-gray-50 sticky left-0 z-10">
-                    {translateLabel('compare.actions', 'Actions')}
+                    {t('common.compare.actions')}
                   </td>
                   {products.map((product) => (
                     <td key={product.id} className="px-4 py-4 text-center">
@@ -427,7 +410,7 @@ export default function ComparePage() {
                           href={`/products/${product.slug}`}
                           className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                         >
-                          {translateLabel('compare.viewDetails', 'View details')}
+                          {t('common.compare.viewDetails')}
                         </Link>
                         {product.inStock && (
                           <button
@@ -436,8 +419,8 @@ export default function ComparePage() {
                             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {addingToCart.has(product.id)
-                              ? translateLabel('cart.adding', 'Adding...')
-                              : translateLabel('cart.addToCart', 'Add to cart')}
+                              ? t('common.messages.adding')
+                              : t('common.buttons.addToCart')}
                           </button>
                         )}
                       </div>
@@ -465,14 +448,14 @@ export default function ComparePage() {
               />
             </svg>
             <h2 className="text-xl font-bold text-gray-900 mb-2">
-              {translateLabel('compare.empty', 'Compare list is empty')}
+              {t('common.compare.empty')}
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              {translateLabel('compare.emptyDescription', 'Add products to compare them side by side.')}
+              {t('common.compare.emptyDescription')}
             </p>
             <Link href="/products">
               <Button variant="primary" size="md">
-                {translateLabel('compare.browseProducts', 'Browse products')}
+                {t('common.compare.browseProducts')}
               </Button>
             </Link>
           </div>

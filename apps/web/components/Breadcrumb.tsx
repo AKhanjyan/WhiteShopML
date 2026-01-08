@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getStoredLanguage } from '../lib/language';
-import { getTranslation } from '../lib/translations';
+import { t } from '../lib/i18n';
 import { useState, useEffect } from 'react';
 
 interface BreadcrumbItem {
@@ -31,7 +31,7 @@ export function Breadcrumb() {
 
   const getBreadcrumbs = (): BreadcrumbItem[] => {
     const items: BreadcrumbItem[] = [
-      { label: getTranslation('breadcrumb.home', language), href: '/' },
+      { label: t(language, 'common.navigation.home'), href: '/' },
     ];
 
     if (pathname === '/') {
@@ -48,32 +48,32 @@ export function Breadcrumb() {
       
       // Map common routes to translations
       const routeMap: Record<string, string> = {
-        'products': 'breadcrumb.products',
-        'categories': 'breadcrumb.categories',
-        'cart': 'breadcrumb.cart',
-        'wishlist': 'breadcrumb.wishlist',
-        'compare': 'breadcrumb.compare',
-        'checkout': 'breadcrumb.checkout',
-        'profile': 'breadcrumb.profile',
-        'orders': 'breadcrumb.orders',
-        'login': 'breadcrumb.login',
-        'register': 'breadcrumb.register',
-        'about': 'breadcrumb.about',
-        'contact': 'breadcrumb.contact',
-        'admin': 'breadcrumb.admin',
-        'faq': 'breadcrumb.faq',
-        'shipping': 'breadcrumb.shipping',
-        'returns': 'breadcrumb.returns',
-        'support': 'breadcrumb.support',
-        'privacy': 'breadcrumb.privacy',
-        'terms': 'breadcrumb.terms',
-        'cookies': 'breadcrumb.cookies',
-        'delivery': 'breadcrumb.delivery',
-        'stores': 'breadcrumb.stores',
+        'products': 'common.navigation.products',
+        'categories': 'common.navigation.categories',
+        'cart': 'common.navigation.cart',
+        'wishlist': 'common.navigation.wishlist',
+        'compare': 'common.navigation.compare',
+        'checkout': 'common.navigation.checkout',
+        'profile': 'common.navigation.profile',
+        'orders': 'common.navigation.orders',
+        'login': 'common.navigation.login',
+        'register': 'common.navigation.register',
+        'about': 'common.navigation.about',
+        'contact': 'common.navigation.contact',
+        'admin': 'common.navigation.admin',
+        'faq': 'common.navigation.faq',
+        'shipping': 'common.navigation.shipping',
+        'returns': 'common.navigation.returns',
+        'support': 'common.navigation.support',
+        'privacy': 'common.navigation.privacy',
+        'terms': 'common.navigation.terms',
+        'cookies': 'common.navigation.cookies',
+        'delivery': 'common.navigation.delivery',
+        'stores': 'common.navigation.stores',
       };
 
       if (routeMap[segment]) {
-        label = getTranslation(routeMap[segment], language);
+        label = t(language, routeMap[segment]);
       } else {
         // Capitalize and format segment (for product slugs, etc.)
         label = segment

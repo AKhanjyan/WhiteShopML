@@ -6,8 +6,10 @@ import { Button, Input, Card } from '@shop/ui';
 import Link from 'next/link';
 import { useAuth } from '../../lib/auth/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '../../lib/i18n';
 
 function LoginPageContent() {
+  const { t } = useTranslation();
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -28,13 +30,13 @@ function LoginPageContent() {
 
     // Validation
     if (!emailOrPhone.trim()) {
-      setError('Please enter your email or phone number');
+      setError(t('login.errors.emailOrPhoneRequired'));
       setIsSubmitting(false);
       return;
     }
 
     if (!password) {
-      setError('Please enter your password');
+      setError(t('login.errors.passwordRequired'));
       setIsSubmitting(false);
       return;
     }
@@ -47,7 +49,7 @@ function LoginPageContent() {
       router.push(redirectTo);
     } catch (err: any) {
       console.error('❌ [LOGIN PAGE] Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.message || t('login.errors.loginFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -63,8 +65,8 @@ function LoginPageContent() {
   return (
     <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <Card className="p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-        <p className="text-gray-600 mb-8">Sign in to your account to continue</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('login.title')}</h1>
+        <p className="text-gray-600 mb-8">{t('login.subtitle')}</p>
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -75,12 +77,12 @@ function LoginPageContent() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="emailOrPhone" className="block text-sm font-medium text-gray-700 mb-2">
-              Email or Phone
+              {t('login.form.emailOrPhone')}
             </label>
             <Input
               id="emailOrPhone"
               type="text"
-              placeholder="your@email.com or +374 XX XXX XXX"
+              placeholder={t('login.form.emailOrPhonePlaceholder')}
               className="w-full"
               value={emailOrPhone}
               onChange={(e) => setEmailOrPhone(e.target.value)}
@@ -90,12 +92,12 @@ function LoginPageContent() {
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              {t('login.form.password')}
             </label>
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
+              placeholder={t('login.form.passwordPlaceholder')}
               className="w-full"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -112,13 +114,13 @@ function LoginPageContent() {
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 disabled={isSubmitting || isLoading}
               />
-              <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              <span className="ml-2 text-sm text-gray-600">{t('login.form.rememberMe')}</span>
             </label>
             <Link
               href="/forgot-password"
               className="text-sm text-blue-600 hover:underline"
             >
-              Forgot password?
+              {t('login.form.forgotPassword')}
             </Link>
           </div>
           <Button 
@@ -127,15 +129,15 @@ function LoginPageContent() {
             type="submit"
             disabled={isSubmitting || isLoading}
           >
-            {isSubmitting || isLoading ? 'Signing in...' : 'Sign In'}
+            {isSubmitting || isLoading ? t('login.form.submitting') : t('login.form.submit')}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            {t('login.form.noAccount')}{' '}
             <Link href="/register" className="text-blue-600 hover:underline font-medium">
-              Sign up
+              {t('login.form.signUp')}
             </Link>
           </p>
         </div>

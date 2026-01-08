@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '../lib/i18n';
 
 const heroImages = [
   'https://images.pexels.com/photos/67102/pexels-photo-67102.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
@@ -13,6 +14,7 @@ const heroImages = [
 export function HeroCarousel() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -78,23 +80,23 @@ export function HeroCarousel() {
           {/* Background overlay for better text readability */}
           <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 md:p-10 lg:p-12 shadow-2xl border border-white/5">
             <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              Welcome to Shop
+              {t('home.hero_title')}
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-gray-700 mb-8 leading-relaxed">
-              Discover amazing products and exclusive deals. Shop the latest trends and find everything you need in one place.
+              {t('home.hero_subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleShopNow}
                 className="px-10 py-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                PRODUCTS
+                {t('home.hero_button_products')}
               </button>
               <button
                 onClick={handleBrowseCategories}
                 className="px-10 py-4 bg-white text-gray-900 border-2 border-gray-900 rounded-lg hover:bg-gray-50 transition-all font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
-                VIEW MORE
+                {t('home.hero_button_view_more')}
               </button>
             </div>
           </div>

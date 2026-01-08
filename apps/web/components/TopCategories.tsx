@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { apiClient } from '../lib/api-client';
 import { getStoredLanguage } from '../lib/language';
+import { useTranslation } from '../lib/i18n';
 
 interface Category {
   id: string;
@@ -58,6 +59,7 @@ function flattenAllCategories(cats: Category[]): Category[] {
  * Displays top 5 categories with most products in circular icons
  */
 export function TopCategories() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [topCategories, setTopCategories] = useState<CategoryWithData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -241,7 +243,7 @@ export function TopCategories() {
                 
                 {/* Product Count */}
                 <span className="text-xs text-gray-500 font-medium">
-                  {productCount} {productCount === 1 ? 'product' : 'products'}
+                  {productCount} {productCount === 1 ? t('common.product.product') : t('common.product.products')}
                 </span>
               </Link>
             );

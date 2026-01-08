@@ -1,7 +1,11 @@
+'use client';
+
 import { Card, Button } from '@shop/ui';
 import Link from 'next/link';
+import { useTranslation } from '../../lib/i18n';
 
 export default function StoresPage() {
+  const { t } = useTranslation();
   const stores = [
     {
       id: 1,
@@ -35,9 +39,9 @@ export default function StoresPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Our Stores</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('stores.title')}</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Visit us at any of our locations. Our friendly staff is ready to help you find exactly what you're looking for.
+          {t('stores.description')}
         </p>
       </div>
 
@@ -140,7 +144,7 @@ export default function StoresPage() {
 
               <Link href="/contact">
                 <Button variant="outline" className="w-full" size="sm">
-                  Get Directions
+                  {t('stores.getDirections')}
                 </Button>
               </Link>
             </div>
@@ -149,13 +153,13 @@ export default function StoresPage() {
       </div>
 
       <div className="mt-12 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Can't find what you're looking for?</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('stores.cantFind.title')}</h2>
         <p className="text-gray-600 mb-6">
-          Contact us and we'll help you find the perfect product.
+          {t('stores.cantFind.description')}
         </p>
         <Link href="/contact">
           <Button variant="primary" size="lg">
-            Contact Us
+            {t('stores.cantFind.contactUs')}
           </Button>
         </Link>
       </div>

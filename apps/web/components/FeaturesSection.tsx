@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslation } from '../lib/i18n';
 
 /**
  * Features Section Component
@@ -9,16 +10,18 @@ import Link from 'next/link';
  * Each feature card is clickable and navigates to the corresponding page
  */
 export function FeaturesSection() {
+  const { t } = useTranslation();
+
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            We Provide High Quality Goods
+            {t('home.features_title')}
           </h2>
           <p className="text-base text-gray-600 max-w-2xl mx-auto">
-            A client that's unhappy for a reason is a problem, a client that's unhappy though he or her can't
+            {t('home.features_subtitle')}
           </p>
         </div>
 
@@ -39,10 +42,10 @@ export function FeaturesSection() {
               </div>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors">
-              Fast Delivery
+              {t('home.feature_fast_delivery_title')}
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Chances are there wasn't collaboration and checkpoints, there wasn't a process.
+              {t('home.feature_fast_delivery_description')}
             </p>
           </Link>
 
@@ -61,10 +64,10 @@ export function FeaturesSection() {
               </div>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors">
-              Best Quality
+              {t('home.feature_best_quality_title')}
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              It's content strategy gone awry right from the start. Forswearing the use of Lorem Ipsum.
+              {t('home.feature_best_quality_description')}
             </p>
           </Link>
 
@@ -83,10 +86,10 @@ export function FeaturesSection() {
               </div>
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-gray-700 transition-colors">
-              Free Return
+              {t('home.feature_free_return_title')}
             </h3>
             <p className="text-sm text-gray-600 leading-relaxed">
-              True enough, but that's not all that it takes to get things back on track out there for a text.
+              {t('home.feature_free_return_description')}
             </p>
           </Link>
         </div>

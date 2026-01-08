@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '@shop/ui';
 import { useAuth } from '../lib/auth/AuthContext';
-import { getStoredLanguage } from '../lib/language';
-import { getTranslation } from '../lib/translations';
+import { useTranslation } from '../lib/i18n';
 
 interface Review {
   id: string;
@@ -22,7 +21,7 @@ interface ProductReviewsProps {
 
 export function ProductReviews({ productId }: ProductReviewsProps) {
   const { isLoggedIn, user } = useAuth();
-  const [language, setLanguage] = useState(getStoredLanguage());
+  const { t } = useTranslation();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -33,15 +32,6 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
 
   useEffect(() => {
     loadReviews();
-    
-    const handleLanguageUpdate = () => {
-      setLanguage(getStoredLanguage());
-    };
-
-    window.addEventListener('language-updated', handleLanguageUpdate);
-    return () => {
-      window.removeEventListener('language-updated', handleLanguageUpdate);
-    };
   }, [productId]);
 
   const loadReviews = () => {
@@ -61,17 +51,17 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
     e.preventDefault();
     
     if (!isLoggedIn) {
-      alert(getTranslation('reviews.loginRequired', language) || 'Please login to submit a review');
+      alert(t('common.reviews.loginRequired'));
       return;
     }
 
     if (rating === 0) {
-      alert(getTranslation('reviews.ratingRequired', language) || 'Please select a rating');
+      alert(t('common.reviews.ratingRequired'));
       return;
     }
 
     if (!comment.trim()) {
-      alert(getTranslation('reviews.commentRequired', language) || 'Please write a comment');
+      alert(t('common.reviews.commentRequired'));
       return;
     }
 
@@ -104,7 +94,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      alert(getTranslation('reviews.submitError', language) || 'Failed to submit review');
+      alert(t('common.reviews.submitError'));
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +114,8 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString(language === 'hy' ? 'hy-AM' : language === 'ru' ? 'ru-RU' : 'en-US', {
+    // Use browser's default locale for date formatting
+    return date.toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -149,7 +140,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-gray-200">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          {getTranslation('reviews.title', language) || 'Reviews'}
+          {t('common.reviews.title')}
         </h2>
 
         {/* Rating Summary */}
@@ -176,8 +167,8 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
             </div>
             <div className="text-sm text-gray-600">
               {reviews.length} {reviews.length === 1 
-                ? (getTranslation('reviews.review', language) || 'review')
-                : (getTranslation('reviews.reviews', language) || 'reviews')}
+                ? t('common.reviews.review')
+                : t('common.reviews.reviews')}
             </div>
           </div>
 
@@ -209,14 +200,14 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
             variant="primary"
             onClick={() => {
               if (!isLoggedIn) {
-                alert(getTranslation('reviews.loginRequired', language) || 'Please login to write a review');
+                alert(t('common.reviews.loginRequired'));
                 return;
               }
               setShowForm(true);
             }}
             className="mb-8"
           >
-            {getTranslation('reviews.writeReview', language) || 'Write a Review'}
+            {t('common.reviews.writeReview')}
           </Button>
         )}
 
@@ -224,13 +215,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-8 p-6 bg-gray-50 rounded-lg">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              {getTranslation('reviews.writeReview', language) || 'Write a Review'}
+              {t('common.reviews.writeReview')}
             </h3>
 
             {/* Rating Selector */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {getTranslation('reviews.rating', language) || 'Rating'} *
+                {t('common.reviews.rating')} *
               </label>
               <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -261,14 +252,14 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
             {/* Comment Textarea */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {getTranslation('reviews.comment', language) || 'Your Review'} *
+                {t('common.reviews.comment')} *
               </label>
               <textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 rows={5}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder={getTranslation('reviews.commentPlaceholder', language) || 'Share your thoughts about this product...'}
+                placeholder={t('common.reviews.commentPlaceholder')}
                 required
               />
             </div>
@@ -281,8 +272,8 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                 disabled={submitting}
               >
                 {submitting
-                  ? (getTranslation('reviews.submitting', language) || 'Submitting...')
-                  : (getTranslation('reviews.submit', language) || 'Submit Review')}
+                  ? t('common.reviews.submitting')
+                  : t('common.reviews.submitReview')}
               </Button>
               <Button
                 type="button"
@@ -293,7 +284,7 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
                   setComment('');
                 }}
               >
-                {getTranslation('reviews.cancel', language) || 'Cancel'}
+                {t('common.buttons.cancel')}
               </Button>
             </div>
           </form>
@@ -304,20 +295,20 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
       {reviews.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-600 mb-4">
-            {getTranslation('reviews.noReviews', language) || 'No reviews yet. Be the first to review this product!'}
+            {t('common.reviews.noReviews')}
           </p>
           {!showForm && (
             <Button
               variant="primary"
               onClick={() => {
                 if (!isLoggedIn) {
-                  alert(getTranslation('reviews.loginRequired', language) || 'Please login to write a review');
+                  alert(t('common.reviews.loginRequired'));
                   return;
                 }
                 setShowForm(true);
               }}
             >
-              {getTranslation('reviews.writeReview', language) || 'Write a Review'}
+              {t('common.reviews.writeReview')}
             </Button>
           )}
         </div>

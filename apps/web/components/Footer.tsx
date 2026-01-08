@@ -4,9 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { getStoredLanguage } from '../lib/language';
+import { useTranslation } from '../lib/i18n';
 import contactData from '../../../config/contact.json';
 
 export function Footer() {
+  const { t } = useTranslation();
   const [language, setLanguage] = useState<'en' | 'ru' | 'am'>('en');
 
   useEffect(() => {
@@ -42,16 +44,16 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Shop</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">{t('common.footer.shop')}</h3>
             <p className="text-sm text-gray-300">
-              Professional e-commerce platform for modern shopping experience.
+              {t('common.footer.description')}
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
             <h4 className="text-sm font-semibold text-white mb-4">
-              Quick Links
+              {t('common.footer.quickLinks')}
             </h4>
             <ul className="space-y-2">
               <li>
@@ -59,7 +61,7 @@ export function Footer() {
                   href="/products"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Products
+                  {t('common.navigation.products')}
                 </Link>
               </li>
               <li>
@@ -67,7 +69,7 @@ export function Footer() {
                   href="/categories"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Categories
+                  {t('common.navigation.categories')}
                 </Link>
               </li>
               <li>
@@ -75,7 +77,7 @@ export function Footer() {
                   href="/about"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  About Us
+                  {t('common.navigation.about')}
                 </Link>
               </li>
               <li>
@@ -83,7 +85,7 @@ export function Footer() {
                   href="/contact"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Contact
+                  {t('common.navigation.contact')}
                 </Link>
               </li>
             </ul>
@@ -91,14 +93,14 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
+            <h4 className="text-sm font-semibold text-white mb-4">{t('common.footer.legal')}</h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/privacy"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Privacy Policy
+                  {t('common.footer.privacyPolicy')}
                 </Link>
               </li>
               <li>
@@ -106,7 +108,7 @@ export function Footer() {
                   href="/terms"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Terms of Service
+                  {t('common.footer.termsOfService')}
                 </Link>
               </li>
               <li>
@@ -114,7 +116,7 @@ export function Footer() {
                   href="/cookies"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Cookie Policy
+                  {t('common.footer.cookiePolicy')}
                 </Link>
               </li>
               <li>
@@ -122,7 +124,7 @@ export function Footer() {
                   href="/refund-policy"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Refund Policy
+                  {t('common.footer.refundPolicy')}
                 </Link>
               </li>
               <li>
@@ -130,7 +132,7 @@ export function Footer() {
                   href="/delivery-terms"
                   className="text-sm text-gray-300 hover:text-white transition-colors"
                 >
-                  Delivery Terms
+                  {t('common.footer.deliveryTerms')}
                 </Link>
               </li>
             </ul>
@@ -138,7 +140,7 @@ export function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Contact Info</h4>
+            <h4 className="text-sm font-semibold text-white mb-4">{t('common.footer.contactInfo')}</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <svg
@@ -212,12 +214,12 @@ export function Footer() {
         <div className="mt-8 pt-8 border-t border-gray-800">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-300">
-              © {new Date().getFullYear()} Shop. All rights reserved.
+              {t('common.footer.copyright').replace('{year}', new Date().getFullYear().toString())}
             </p>
             
             {/* Payment Methods */}
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-400 mr-2">Payment Methods:</span>
+              <span className="text-sm text-gray-400 mr-2">{t('common.footer.paymentMethods')}</span>
               <div className="flex items-center gap-3">
                 <Image
                   src="https://static.tert.am/storage/files/tert/2020/04/27/idram_main_visual-770x_.png"

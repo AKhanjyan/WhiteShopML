@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '../../../lib/api-client';
 import { formatPrice, getStoredCurrency } from '../../../lib/currency';
 import { getStoredLanguage } from '../../../lib/language';
+import { t, getProductText, getAttributeLabel } from '../../../lib/i18n';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { RelatedProducts } from '../../../components/RelatedProducts';
 import { ProductReviews } from '../../../components/ProductReviews';
@@ -565,13 +566,13 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Generate user-friendly message for required attributes
   const getRequiredAttributesMessage = (): string => {
     if (needsColor && needsSize) {
-      return 'Please select size and color';
+      return t(language, 'product.selectColorAndSize');
     } else if (needsColor) {
-      return 'Please select color';
+      return t(language, 'product.selectColor');
     } else if (needsSize) {
-      return 'Please select size';
+      return t(language, 'product.selectSize');
     }
-    return 'Select Options';
+    return t(language, 'product.selectOptions');
   };
   
   const canAddToCart = !isOutOfStock && !isVariationRequired;
@@ -650,12 +651,12 @@ export default function ProductPage({ params }: ProductPageProps) {
       if (isInWishlist) {
         localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist.filter(id => id !== product.id)));
         setIsInWishlist(false);
-        setShowMessage('Removed from wishlist');
+        setShowMessage(t(language, 'product.removedFromWishlist'));
       } else {
         wishlist.push(product.id);
         localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
         setIsInWishlist(true);
-        setShowMessage('Added to wishlist');
+        setShowMessage(t(language, 'product.addedToWishlist'));
       }
       setTimeout(() => setShowMessage(null), 2000);
       window.dispatchEvent(new Event('wishlist-updated'));
@@ -671,14 +672,14 @@ export default function ProductPage({ params }: ProductPageProps) {
       if (isInCompare) {
         localStorage.setItem(COMPARE_KEY, JSON.stringify(compare.filter(id => id !== product.id)));
         setIsInCompare(false);
-        setShowMessage('Removed from compare');
+        setShowMessage(t(language, 'product.removedFromCompare'));
       } else {
-        if (compare.length >= 4) { setShowMessage('Compare list is full'); }
+        if (compare.length >= 4) { setShowMessage(t(language, 'product.compareListFull')); }
         else {
           compare.push(product.id);
           localStorage.setItem(COMPARE_KEY, JSON.stringify(compare));
           setIsInCompare(true);
-          setShowMessage('Added to compare');
+          setShowMessage(t(language, 'product.addedToCompare'));
         }
       }
       setTimeout(() => setShowMessage(null), 2000);
@@ -686,7 +687,7 @@ export default function ProductPage({ params }: ProductPageProps) {
     } catch (err) { console.error(err); }
   };
 
-  if (loading || !product) return <div className="max-w-7xl mx-auto px-4 py-16 text-center">Loading...</div>;
+  if (loading || !product) return <div className="max-w-7xl mx-auto px-4 py-16 text-center">{t(language, 'common.messages.loading')}</div>;
 
   const visibleThumbnails = images.slice(thumbnailStartIndex, thumbnailStartIndex + thumbnailsPerView);
 
@@ -797,7 +798,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+              <div className="w-full h-full flex items-center justify-center text-gray-400">{t(language, 'common.messages.noImage')}</div>
             )}
             
             {/* Discount Badge on Image - Blue circle in top-right */}
@@ -827,7 +828,9 @@ export default function ProductPage({ params }: ProductPageProps) {
         <div className="flex flex-col h-full">
           <div className="flex-1">
             {product.brand && <p className="text-sm text-gray-500 mb-2">{product.brand.name}</p>}
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{product.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              {getProductText(language, product.id, 'title') || product.title}
+            </h1>
             <div className="mb-6">
               <div className="flex flex-col gap-1">
                 <p className="text-3xl font-bold text-gray-900">{formatPrice(price, currency)}</p>
@@ -838,7 +841,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 )}
               </div>
             </div>
-            <div className="text-gray-600 mb-8 prose prose-sm" dangerouslySetInnerHTML={{ __html: product.description || '' }} />
+            <div className="text-gray-600 mb-8 prose prose-sm" dangerouslySetInnerHTML={{ __html: getProductText(language, product.id, 'longDescription') || product.description || '' }} />
 
             <div className="mt-8 p-6 bg-white border border-gray-200 rounded-2xl space-y-5">
             {/* Rating Section */}
@@ -865,7 +868,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 </span>
               </div>
               <span className="text-sm text-gray-600">
-                ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
+                ({reviews.length} {reviews.length === 1 ? t(language, 'common.reviews.review') : t(language, 'common.reviews.reviews')})
               </span>
             </div>
 
@@ -882,7 +885,11 @@ export default function ProductPage({ params }: ProductPageProps) {
 
                 return (
                   <div key={attrKey} className="space-y-2">
-                    <label className="text-sm font-bold uppercase">{productAttr.attribute.name}:</label>
+                    <label className="text-sm font-bold uppercase">
+                      {attrKey === 'color' ? t(language, 'product.color') : 
+                       attrKey === 'size' ? t(language, 'product.size') : 
+                       productAttr.attribute.name}:
+                    </label>
                     {isColor ? (
                       <div className="flex flex-wrap gap-2 items-center">
                         {attrGroups.map((g) => {
@@ -902,7 +909,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                                       : 'border-gray-300 hover:scale-105'
                                 }`}
                                 style={{ backgroundColor: getColorValue(g.value) }} 
-                                title={isDisabled ? `${g.label} (Out of Stock)` : `${g.label}${g.stock > 0 ? ` (${g.stock} pcs)` : ''}`} 
+                                title={isDisabled ? `${getAttributeLabel(language, attrKey, g.value)} (${t(language, 'product.outOfStock')})` : `${getAttributeLabel(language, attrKey, g.value)}${g.stock > 0 ? ` (${g.stock} ${t(language, 'product.pcs')})` : ''}`} 
                               />
                               {g.stock > 0 && (
                                 <span className="text-xs text-gray-500">{g.stock}</span>
@@ -939,7 +946,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                               }`}
                             >
                               <div className="flex flex-col text-center">
-                                <span className="text-sm font-medium">{g.label}</span>
+                                <span className="text-sm font-medium">{getAttributeLabel(language, attrKey, g.value)}</span>
                                 {displayStock > 0 && (
                                   <span className="text-xs text-gray-500">({displayStock})</span>
                                 )}
@@ -979,7 +986,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                                     : 'border-gray-200 hover:border-gray-400'
                               }`}
                             >
-                              {g.label}
+                              {getAttributeLabel(language, attrKey, g.value)}
                             </button>
                           );
                         })}
@@ -993,7 +1000,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               <>
                 {colorGroups.length > 0 && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Color:</label>
+                    <label className="text-sm font-medium">{t(language, 'product.color')}:</label>
                     <div className="flex flex-wrap gap-2 items-center">
                       {colorGroups.map((g) => {
                         const isSelected = selectedColor === g.color;
@@ -1012,7 +1019,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                                     : 'border-gray-300 hover:scale-105'
                               }`}
                               style={{ backgroundColor: getColorValue(g.color) }} 
-                              title={isDisabled ? `${g.color} (Out of Stock)` : `${g.color}${g.stock > 0 ? ` (${g.stock} pcs)` : ''}`} 
+                              title={isDisabled ? `${getAttributeLabel(language, 'color', g.color)} (${t(language, 'product.outOfStock')})` : `${getAttributeLabel(language, 'color', g.color)}${g.stock > 0 ? ` (${g.stock} ${t(language, 'product.pcs')})` : ''}`} 
                             />
                             {g.stock > 0 && (
                               <span className="text-xs text-gray-500">{g.stock}</span>
@@ -1029,7 +1036,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             {/* Size Groups - Show only if not using new format */}
             {!product?.productAttributes && sizeGroups.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-bold uppercase">Size</label>
+                <label className="text-sm font-bold uppercase">{t(language, 'product.size')}</label>
                 <div className="flex flex-wrap gap-2">
                   {sizeGroups.map((g) => {
                     let displayStock = g.stock;
@@ -1057,9 +1064,9 @@ export default function ProductPage({ params }: ProductPageProps) {
                         }`}
                       >
                         <div className="flex flex-col text-center">
-                          <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>{g.size}</span>
+                          <span className={`text-sm font-medium ${isDisabled ? 'text-gray-400' : 'text-gray-900'}`}>{getAttributeLabel(language, 'size', g.size)}</span>
                           {displayStock > 0 && (
-                            <span className={`text-xs ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>{displayStock} pcs</span>
+                            <span className={`text-xs ${isDisabled ? 'text-gray-300' : 'text-gray-500'}`}>{displayStock} {t(language, 'product.pcs')}</span>
                           )}
                         </div>
                       </button>
@@ -1103,12 +1110,12 @@ export default function ProductPage({ params }: ProductPageProps) {
                     } else {
                       await apiClient.post('/api/v1/cart/items', { productId: product.id, variantId: currentVariant.id, quantity });
                     }
-                    setShowMessage(`Added ${quantity} pcs to cart`);
+                    setShowMessage(`${t(language, 'product.addedToCart')} ${quantity} ${t(language, 'product.pcs')}`);
                     window.dispatchEvent(new Event('cart-updated'));
-                  } catch (err) { setShowMessage('Error adding to cart'); }
+                  } catch (err) { setShowMessage(t(language, 'product.errorAddingToCart')); }
                   finally { setIsAddingToCart(false); setTimeout(() => setShowMessage(null), 2000); }
                 }}>
-                {isAddingToCart ? 'Adding...' : (isOutOfStock ? 'Out of Stock' : (isVariationRequired ? getRequiredAttributesMessage() : 'Add to Cart'))}
+                {isAddingToCart ? t(language, 'product.adding') : (isOutOfStock ? t(language, 'product.outOfStock') : (isVariationRequired ? getRequiredAttributesMessage() : t(language, 'product.addToCart')))}
               </button>
               <button onClick={handleAddToWishlist} className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center ${isInWishlist ? 'border-gray-900 bg-gray-50' : 'border-gray-200'}`}>
                 <Heart fill={isInWishlist ? 'currentColor' : 'none'} />

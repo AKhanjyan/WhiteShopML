@@ -1,5 +1,8 @@
+'use client';
+
 import Image from 'next/image';
 import { TeamCarousel } from '../../components/TeamCarousel';
+import { useTranslation } from '../../lib/i18n';
 
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
@@ -11,6 +14,7 @@ export const dynamicParams = true;
  * 2. Our Team - карусель с членами команды
  */
 export default function AboutPage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-white">
       {/* Секция: About our online store */}
@@ -33,30 +37,24 @@ export default function AboutPage() {
             <div className="space-y-6">
               {/* Подзаголовок */}
               <p className="text-sm md:text-base font-semibold uppercase tracking-wider text-[#7CB342]">
-                SEEMINGLY ELEGANT DESIGN
+                {t('about.subtitle')}
               </p>
 
               {/* Заголовок */}
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                About our online store
+                {t('about.title')}
               </h1>
 
               {/* Текст */}
               <div className="space-y-4 text-gray-600 text-base md:text-lg leading-relaxed">
                 <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-                  incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-                  exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                  {t('about.description.paragraph1')}
                 </p>
                 <p>
-                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
-                  fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
-                  culpa qui officia deserunt mollit anim id est laborum.
+                  {t('about.description.paragraph2')}
                 </p>
                 <p>
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque 
-                  laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi 
-                  architecto beatae vitae dicta sunt explicabo.
+                  {t('about.description.paragraph3')}
                 </p>
               </div>
             </div>
@@ -70,17 +68,17 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             {/* Подзаголовок */}
             <p className="text-sm md:text-base font-semibold uppercase tracking-wider text-[#7CB342] mb-4">
-              WORDS ABOUT US
+              {t('about.team.subtitle')}
             </p>
 
             {/* Заголовок */}
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-              Our Team
+              {t('about.team.title')}
             </h2>
 
             {/* Описание */}
             <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto">
-              Curvallis ulemperatuurimatikamobor.sal.
+              {t('about.team.description')}
             </p>
           </div>
 

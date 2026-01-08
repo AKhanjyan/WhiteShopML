@@ -7,7 +7,7 @@ import { Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { formatPrice, getStoredCurrency } from '../../lib/currency';
 import { getStoredLanguage } from '../../lib/language';
-import { getTranslation } from '../../lib/translations';
+import { useTranslation } from '../../lib/i18n';
 import { useAuth } from '../../lib/auth/AuthContext';
 
 interface CartItem {
@@ -47,10 +47,10 @@ const CART_KEY = 'shop_cart_guest';
 
 export default function CartPage() {
   const { isLoggedIn } = useAuth();
+  const { t } = useTranslation();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState(getStoredCurrency());
-  const [language, setLanguage] = useState(getStoredLanguage());
   const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
   // Track if we updated locally to prevent unnecessary re-fetch
   const isLocalUpdateRef = useRef(false);
@@ -62,9 +62,6 @@ export default function CartPage() {
       setCurrency(getStoredCurrency());
     };
 
-    const handleLanguageUpdate = () => {
-      setLanguage(getStoredLanguage());
-    };
 
     const handleCartUpdate = () => {
       // If we just updated locally, skip re-fetch to avoid page reload
@@ -82,13 +79,11 @@ export default function CartPage() {
     };
 
     window.addEventListener('currency-updated', handleCurrencyUpdate);
-    window.addEventListener('language-updated', handleLanguageUpdate);
     window.addEventListener('cart-updated', handleCartUpdate);
     window.addEventListener('auth-updated', handleAuthUpdate);
 
     return () => {
       window.removeEventListener('currency-updated', handleCurrencyUpdate);
-      window.removeEventListener('language-updated', handleLanguageUpdate);
       window.removeEventListener('cart-updated', handleCartUpdate);
       window.removeEventListener('auth-updated', handleAuthUpdate);
     };
@@ -167,7 +162,7 @@ export default function CartPage() {
                       stock: variant.stock !== undefined ? variant.stock : undefined,
                       product: {
                         id: productData.id,
-                        title: translation?.title || 'Product',
+                        title: translation?.title || t('common.messages.product'),
                         slug: productData.slug,
                         image: imageUrl,
                       },
@@ -419,9 +414,9 @@ export default function CartPage() {
       fetchCart();
       
       // Show user-friendly error message
-      const errorMessage = error?.detail || error?.message || 'Չհաջողվեց թարմացնել քանակը';
+      const errorMessage = error?.detail || error?.message || t('common.messages.failedToUpdateQuantity');
       if (errorMessage.includes('stock') || errorMessage.includes('exceeds')) {
-        alert(`Մատչելի քանակը բավարար չէ: ${errorMessage}`);
+        alert(t('common.alerts.stockInsufficient').replace('{message}', errorMessage));
       } else {
         alert(errorMessage);
       }
@@ -449,22 +444,22 @@ export default function CartPage() {
   if (!cart || cart.items.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">{getTranslation('cart.title', language)}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('common.cart.title')}</h1>
         <div className="text-center py-16">
           <div className="max-w-md mx-auto">
             <Image
               src="https://cdn-icons-png.flaticon.com/512/3081/3081986.png"
-              alt="Empty cart"
+              alt={t('common.cart.empty')}
               width={96}
               height={96}
               className="mx-auto mb-4"
             />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {getTranslation('cart.empty', language)}
+              {t('common.cart.empty')}
             </h2>
             <Link href="/products">
               <Button variant="primary" size="lg" className="mt-6">
-                {getTranslation('wishlist.browseProducts', language)}
+                {t('common.buttons.browseProducts')}
               </Button>
             </Link>
           </div>
@@ -475,7 +470,7 @@ export default function CartPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">{getTranslation('cart.title', language)}</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('common.cart.title')}</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Table */}
@@ -484,13 +479,13 @@ export default function CartPage() {
         {/* Table Header */}
         <div className="hidden md:grid md:grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200">
           <div className="md:col-span-6">
-            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Product</span>
+            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{t('common.messages.product')}</span>
           </div>
           <div className="md:col-span-2 text-center">
-            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Quantity</span>
+            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{t('common.messages.quantity')}</span>
           </div>
           <div className="md:col-span-3 text-center">
-            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Subtotal</span>
+            <span className="text-sm font-semibold text-gray-900 uppercase tracking-wide">{t('common.messages.subtotal')}</span>
           </div>
           <div className="md:col-span-1"></div>
         </div>
@@ -505,7 +500,7 @@ export default function CartPage() {
               <button
                 onClick={() => handleRemoveItem(item.id)}
                 className="absolute top-2 right-2 md:top-4 md:right-4 w-7 h-7 rounded-full bg-white hover:bg-red-50 flex items-center justify-center text-gray-500 hover:text-red-600 transition-colors shadow-md border border-gray-200 hover:border-red-300 z-10"
-                aria-label="Remove item"
+                aria-label={t('common.buttons.remove')}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -542,7 +537,7 @@ export default function CartPage() {
                     {item.variant.product.title}
                   </Link>
                   {item.variant.sku && (
-                    <p className="text-xs text-gray-500 mt-1">SKU: {item.variant.sku}</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('common.messages.sku')}: {item.variant.sku}</p>
                   )}
                 </div>
               </div>
@@ -550,14 +545,14 @@ export default function CartPage() {
               {/* Quantity */}
               <div className="md:col-span-2 flex flex-col items-start md:items-center justify-center">
                 <p className="mb-2 text-xs font-semibold tracking-wide text-gray-500 uppercase md:hidden">
-                  Quantity
+                  {t('common.messages.quantity')}
                 </p>
                 <div className="flex items-center justify-center gap-2 w-full md:w-auto">
                   <button
                     onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                     disabled={updatingItems.has(item.id)}
                     className="w-9 h-9 flex-shrink-0 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Decrease quantity"
+                    aria-label={t('common.ariaLabels.decreaseQuantity')}
                   >
                     <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -574,14 +569,14 @@ export default function CartPage() {
                     }}
                     disabled={updatingItems.has(item.id)}
                     className="w-20 h-9 text-right border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 font-medium pl-2 pr-5"
-                    title={item.variant.stock !== undefined ? `Մատչելի քանակը ${item.variant.stock} հատ է` : ''}
+                    title={item.variant.stock !== undefined ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString()) : ''}
                   />
                   <button
                     onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                     disabled={updatingItems.has(item.id) || (item.variant.stock !== undefined && item.quantity >= item.variant.stock)}
                     className="w-9 h-9 flex-shrink-0 rounded border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Increase quantity"
-                    title={item.variant.stock !== undefined && item.quantity >= item.variant.stock ? `Մատչելի քանակը ${item.variant.stock} հատ է` : 'Ավելացնել քանակ'}
+                    aria-label={t('common.ariaLabels.increaseQuantity')}
+                    title={item.variant.stock !== undefined && item.quantity >= item.variant.stock ? t('common.messages.availableQuantity').replace('{stock}', item.variant.stock.toString()) : t('common.messages.addQuantity')}
                   >
                     <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -593,7 +588,7 @@ export default function CartPage() {
               {/* Subtotal */}
               <div className="md:col-span-3 flex flex-col md:flex-row md:items-center md:justify-start md:ml-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 md:hidden">
-                  Subtotal
+                  {t('common.messages.subtotal')}
                 </p>
                 <div className="flex flex-col gap-1 mt-1 md:mt-0">
                   <span className="text-lg font-semibold text-blue-600">
@@ -616,24 +611,24 @@ export default function CartPage() {
         <div className="lg:col-span-1">
         <div className="bg-white rounded-lg border border-gray-200 p-6 lg:sticky lg:top-24">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
-            {getTranslation('cart.orderSummary', language)}
+            {t('common.cart.orderSummary')}
           </h2>
           <div className="space-y-4 mb-6">
             <div className="flex justify-between text-gray-600">
-              <span>{getTranslation('cart.subtotal', language)}</span>
+              <span>{t('common.cart.subtotal')}</span>
               <span>{formatPrice(cart.totals.subtotal, currency)}</span>
             </div>
             <div className="flex justify-between text-gray-600">
-              <span>{getTranslation('cart.shipping', language)}</span>
-              <span>{getTranslation('cart.free', language)}</span>
+              <span>{t('common.cart.shipping')}</span>
+              <span>{t('common.cart.free')}</span>
             </div>
             <div className="flex justify-between text-gray-600">
-              <span>{getTranslation('cart.tax', language)}</span>
+              <span>{t('common.cart.tax')}</span>
               <span>{formatPrice(cart.totals.tax, currency)}</span>
             </div>
             <div className="border-t border-gray-200 pt-4">
               <div className="flex justify-between text-lg font-bold text-gray-900">
-                <span>{getTranslation('cart.total', language)}</span>
+                <span>{t('common.cart.total')}</span>
                 <span>{formatPrice(cart.totals.total, currency)}</span>
               </div>
             </div>
@@ -647,7 +642,7 @@ export default function CartPage() {
               window.location.href = '/checkout';
             }}
           >
-            {getTranslation('cart.proceedToCheckout', language)}
+            {t('common.buttons.proceedToCheckout')}
           </Button>
           <Button
             variant="outline"
@@ -657,7 +652,7 @@ export default function CartPage() {
               window.location.href = '/products';
             }}
           >
-            {getTranslation('wishlist.browseProducts', language)}
+            {t('common.buttons.browseProducts')}
           </Button>
         </div>
         </div>

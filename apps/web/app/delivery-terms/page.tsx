@@ -1,73 +1,72 @@
+'use client';
+
 import { Card } from '@shop/ui';
+import { useTranslation } from '../../lib/i18n';
 
 /**
  * Delivery Terms page - describes shipping and delivery conditions
  */
 export default function DeliveryTermsPage() {
+  const { t } = useTranslation();
   return (
     <div className="policy-page">
       <div className="policy-page-inner">
-        <h1 className="text-4xl font-bold text-gray-900">Delivery Terms</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{t('delivery-terms.title')}</h1>
         <p className="text-gray-600">
-          Last updated:{' '}
-          {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {t('delivery-terms.lastUpdated')}{' '}
+          {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
 
         <div className="mt-8 space-y-6">
           <Card className="p-6">
-            <h2 className="text-2xl font-semibold text-gray-900">Overview</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.overview.title')}</h2>
             <p className="text-gray-600">
-              These Delivery Terms explain how we process, ship, and deliver your orders, including expected
-              timelines, fees, and responsibilities.
+              {t('delivery-terms.overview.description')}
             </p>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Shipping Options</h2>
-            <p className="text-gray-600">Available options are shown at checkout and may include:</p>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.shippingOptions.title')}</h2>
+            <p className="text-gray-600">{t('delivery-terms.shippingOptions.description')}</p>
             <ul className="list-disc list-inside text-gray-600 ml-4">
-              <li>Standard delivery with estimated timeframes per region.</li>
-              <li>Express delivery where supported.</li>
-              <li>In-store pickup or local courier (if available in your area).</li>
+              <li>{t('delivery-terms.shippingOptions.options.standard')}</li>
+              <li>{t('delivery-terms.shippingOptions.options.express')}</li>
+              <li>{t('delivery-terms.shippingOptions.options.pickup')}</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Processing Times</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.processingTimes.title')}</h2>
             <ul className="list-disc list-inside text-gray-600 ml-4">
-              <li>Orders are typically processed within 1–2 business days after payment confirmation.</li>
-              <li>Orders placed on weekends or holidays process on the next business day.</li>
-              <li>Pre-order items ship based on the estimated availability shown at purchase.</li>
+              <li>{t('delivery-terms.processingTimes.items.typical')}</li>
+              <li>{t('delivery-terms.processingTimes.items.weekends')}</li>
+              <li>{t('delivery-terms.processingTimes.items.preorder')}</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Delivery Timeframes</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.deliveryTimeframes.title')}</h2>
             <p className="text-gray-600">
-              Delivery estimates vary by destination and selected method. Tracking details are provided when
-              the order is shipped. Actual delivery times may differ due to carrier capacity or local customs.
+              {t('delivery-terms.deliveryTimeframes.description')}
             </p>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Shipping Fees & Duties</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.shippingFees.title')}</h2>
             <ul className="list-disc list-inside text-gray-600 ml-4">
-              <li>Shipping costs are calculated at checkout based on destination and service level.</li>
+              <li>{t('delivery-terms.shippingFees.items.costs')}</li>
               <li>
-                Import duties, taxes, or brokerage fees may apply for international shipments and are the
-                recipient&apos;s responsibility.
+                {t('delivery-terms.shippingFees.items.duties')}
               </li>
-              <li>Promotional free-shipping offers apply only as stated in the promotion.</li>
+              <li>{t('delivery-terms.shippingFees.items.promotional')}</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Delays, Damage, or Loss</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.delaysDamageLoss.title')}</h2>
             <ul className="list-disc list-inside text-gray-600 ml-4">
-              <li>We are not liable for delays caused by carriers, weather, or customs inspections.</li>
+              <li>{t('delivery-terms.delaysDamageLoss.items.delays')}</li>
               <li>
-                Please inspect packages on delivery and report visible damage to the carrier and our support
-                team within 48 hours.
+                {t('delivery-terms.delaysDamageLoss.items.damage')}
               </li>
               <li>
-                If a shipment is lost, contact us with your order number; we will coordinate with the carrier
-                to resolve the issue.
+                {t('delivery-terms.delaysDamageLoss.items.loss')}
               </li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-900">Contact Us</h2>
+            <h2 className="text-2xl font-semibold text-gray-900">{t('delivery-terms.contact.title')}</h2>
             <p className="text-gray-600">
-              For delivery questions or special handling requests, reach us at{' '}
+              {t('delivery-terms.contact.description')}{' '}
               <a href="mailto:shipping@whiteshop.com" className="text-blue-600 hover:underline">
                 shipping@whiteshop.com
               </a>
