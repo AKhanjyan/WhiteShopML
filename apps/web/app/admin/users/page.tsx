@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button, Input } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
+import { useTranslation } from '../../../lib/i18n';
 
 interface User {
   id: string;
@@ -29,6 +30,7 @@ interface UsersResponse {
 }
 
 export default function UsersPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
@@ -116,7 +118,7 @@ export default function UsersPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} selected users?`)) return;
+    if (!confirm(t('admin.users.deleteConfirm').replace('{count}', selectedIds.size.toString()))) return;
     setBulkDeleting(true);
     try {
       const ids = Array.from(selectedIds);
@@ -126,10 +128,10 @@ export default function UsersPage() {
       const failed = results.filter(r => r.status === 'rejected');
       setSelectedIds(new Set());
       await fetchUsers();
-      alert(`Bulk delete finished. Success: ${ids.length - failed.length}/${ids.length}`);
+      alert(t('admin.users.bulkDeleteFinished').replace('{success}', (ids.length - failed.length).toString()).replace('{total}', ids.length.toString()));
     } catch (err) {
       console.error('❌ [ADMIN] Bulk delete users error:', err);
-      alert('Failed to delete selected users');
+      alert(t('admin.users.failedToDelete'));
     } finally {
       setBulkDeleting(false);
     }
@@ -148,13 +150,13 @@ export default function UsersPage() {
       fetchUsers();
       
       if (newStatus) {
-        alert(`User "${userName}" is now blocked and cannot login!`);
+        alert(t('admin.users.userBlocked').replace('{name}', userName));
       } else {
-        alert(`User "${userName}" is now active and can login.`);
+        alert(t('admin.users.userActive').replace('{name}', userName));
       }
     } catch (err: any) {
       console.error('❌ [ADMIN] Error updating user status:', err);
-      alert(`Error updating user status: ${err.message || 'Unknown error'}`);
+      alert(t('admin.users.errorUpdatingStatus').replace('{message}', err.message || 'Unknown error'));
     }
   };
 
@@ -163,7 +165,7 @@ export default function UsersPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -194,9 +196,9 @@ export default function UsersPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Admin Panel
+            {t('admin.users.backToAdmin')}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.users.title')}</h1>
         </div>
 
         {/* Search */}
@@ -207,18 +209,18 @@ export default function UsersPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by email, phone, name..."
+                placeholder={t('admin.users.searchPlaceholder')}
                 className="flex-1"
               />
               <Button type="submit" variant="primary">
-                Search
+                {t('admin.users.search')}
               </Button>
             </div>
 
             {/* Admin / Customer filter */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                Admin / Customer
+                {t('admin.users.adminCustomer')}
               </span>
               <div className="inline-flex rounded-full bg-gray-100 p-1 text-xs">
                 <button
@@ -234,7 +236,7 @@ export default function UsersPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  All
+                  {t('admin.users.all')}
                 </button>
                 <button
                   type="button"
@@ -249,7 +251,7 @@ export default function UsersPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Admins
+                  {t('admin.users.admins')}
                 </button>
                 <button
                   type="button"
@@ -264,7 +266,7 @@ export default function UsersPage() {
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  Customers
+                  {t('admin.users.customers')}
                 </button>
               </div>
             </div>
@@ -276,11 +278,11 @@ export default function UsersPage() {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading users...</p>
+              <p className="text-gray-600">{t('admin.users.loadingUsers')}</p>
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">No users found</p>
+              <p className="text-gray-600">{t('admin.users.noUsers')}</p>
             </div>
           ) : (
             <>
@@ -291,28 +293,28 @@ export default function UsersPage() {
                       <th className="px-4 py-3">
                         <input
                           type="checkbox"
-                          aria-label="Select all users"
+                          aria-label={t('admin.users.selectAll')}
                           checked={users.length > 0 && users.every(u => selectedIds.has(u.id))}
                           onChange={toggleSelectAll}
                         />
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        User
+                        {t('admin.users.user')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Contact
+                        {t('admin.users.contact')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Orders
+                        {t('admin.users.orders')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Roles
+                        {t('admin.users.roles')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        {t('admin.users.status')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created
+                        {t('admin.users.created')}
                       </th>
                     </tr>
                   </thead>
@@ -322,7 +324,7 @@ export default function UsersPage() {
                         <td className="px-4 py-4">
                           <input
                             type="checkbox"
-                            aria-label={`Select user ${user.email}`}
+                            aria-label={t('admin.users.selectUser').replace('{email}', user.email)}
                             checked={selectedIds.has(user.id)}
                             onChange={() => toggleSelect(user.id)}
                           />
@@ -369,7 +371,7 @@ export default function UsersPage() {
                                 ? 'bg-gray-300 focus:ring-gray-400'
                                 : 'bg-green-500 focus:ring-green-500'
                             }`}
-                            title={user.blocked ? 'Click to activate user' : 'Click to block user'}
+                            title={user.blocked ? t('admin.users.clickToActivate') : t('admin.users.clickToBlock')}
                             role="switch"
                             aria-checked={!user.blocked}
                           >
@@ -393,7 +395,7 @@ export default function UsersPage() {
               {meta && meta.totalPages > 1 && (
                 <div className="mt-6 flex items-center justify-between">
                   <div className="text-sm text-gray-700">
-                    Showing page {meta.page} of {meta.totalPages} ({meta.total} total)
+                    {t('admin.users.showingPage').replace('{page}', meta.page.toString()).replace('{totalPages}', meta.totalPages.toString()).replace('{total}', meta.total.toString())}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -401,26 +403,26 @@ export default function UsersPage() {
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
                     >
-                      Previous
+                      {t('admin.users.previous')}
                     </Button>
                     <Button
                       variant="ghost"
                       onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
                       disabled={page === meta.totalPages}
                     >
-                      Next
+                      {t('admin.users.next')}
                     </Button>
                   </div>
                 </div>
               )}
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-gray-700">Selected {selectedIds.size} users</div>
+                <div className="text-sm text-gray-700">{t('admin.users.selectedUsers').replace('{count}', selectedIds.size.toString())}</div>
                 <Button
                   variant="outline"
                   onClick={handleBulkDelete}
                   disabled={selectedIds.size === 0 || bulkDeleting}
                 >
-                  {bulkDeleting ? 'Deleting...' : 'Delete selected'}
+                  {bulkDeleting ? t('admin.users.deleting') : t('admin.users.deleteSelected')}
                 </Button>
               </div>
             </>

@@ -6,6 +6,7 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
+import { useTranslation } from '../../../lib/i18n';
 
 interface DeliveryLocation {
   id?: string;
@@ -19,6 +20,7 @@ interface DeliverySettings {
 }
 
 export default function DeliveryPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -62,14 +64,14 @@ export default function DeliveryPage() {
     try {
       console.log('🚚 [ADMIN] Saving delivery settings...', { locations });
       await apiClient.put('/api/v1/admin/delivery', { locations });
-      alert('Delivery settings saved successfully!');
+      alert(t('admin.delivery.savedSuccess'));
       console.log('✅ [ADMIN] Delivery settings saved');
       setEditingId(null);
       await fetchDeliverySettings();
     } catch (err: any) {
       console.error('❌ [ADMIN] Error saving delivery settings:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to save delivery settings';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.delivery.errorSaving').replace('{message}', errorMessage));
     } finally {
       setSaving(false);
     }
@@ -87,7 +89,7 @@ export default function DeliveryPage() {
   };
 
   const handleDeleteLocation = (index: number) => {
-    if (confirm('Are you sure you want to delete this delivery location?')) {
+    if (confirm(t('admin.delivery.deleteLocation'))) {
       const updated = locations.filter((_, i) => i !== index);
       setLocations(updated);
     }
@@ -98,7 +100,7 @@ export default function DeliveryPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -236,27 +238,27 @@ export default function DeliveryPage() {
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Back to Admin Panel
+                {t('admin.delivery.backToAdmin')}
               </button>
-              <h1 className="text-3xl font-bold text-gray-900">Delivery</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{t('admin.delivery.title')}</h1>
             </div>
 
             {/* Delivery Locations */}
             <Card className="p-6 mb-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Delivery Prices by Location</h2>
+                <h2 className="text-xl font-semibold text-gray-900">{t('admin.delivery.deliveryPricesByLocation')}</h2>
                 <Button
                   variant="primary"
                   onClick={handleAddLocation}
                   disabled={saving}
                 >
-                  Add Location
+                  {t('admin.delivery.addLocation')}
                 </Button>
               </div>
               
               {locations.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>No delivery locations configured. Click "Add Location" to get started.</p>
+                  <p>{t('admin.delivery.noLocations')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -265,42 +267,42 @@ export default function DeliveryPage() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Country
+                            {t('admin.delivery.country')}
                           </label>
                           <input
                             type="text"
                             value={location.country}
                             onChange={(e) => handleUpdateLocation(index, 'country', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g., Armenia"
+                            placeholder={t('admin.delivery.countryPlaceholder')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            City
+                            {t('admin.delivery.city')}
                           </label>
                           <input
                             type="text"
                             value={location.city}
                             onChange={(e) => handleUpdateLocation(index, 'city', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g., Yerevan"
+                            placeholder={t('admin.delivery.cityPlaceholder')}
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Price (AMD)
+                            {t('admin.delivery.price')}
                           </label>
                           <div className="flex gap-2">
                             <input
                               type="number"
                               value={location.price}
                               onChange={(e) => handleUpdateLocation(index, 'price', parseFloat(e.target.value) || 0)}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="1000"
-                              min="0"
-                              step="100"
-                            />
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder={t('admin.delivery.pricePlaceholder')}
+                            min="0"
+                            step="100"
+                          />
                             <button
                               onClick={() => handleDeleteLocation(index)}
                               className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
@@ -326,14 +328,14 @@ export default function DeliveryPage() {
                 onClick={handleSave}
                 disabled={saving || locations.length === 0}
               >
-                {saving ? 'Saving...' : 'Save Settings'}
+                {saving ? t('admin.delivery.saving') : t('admin.delivery.saveSettings')}
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => router.push('/admin')}
                 disabled={saving}
               >
-                Cancel
+                {t('admin.delivery.cancel')}
               </Button>
             </div>
           </div>

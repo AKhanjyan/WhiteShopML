@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
+import { useTranslation } from '../../../lib/i18n';
 
 interface Product {
   id: string;
@@ -42,6 +43,7 @@ interface Category {
 }
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
@@ -164,7 +166,7 @@ export default function ProductsPage() {
       setMeta(response.meta || null);
     } catch (err: any) {
       console.error('❌ [ADMIN] Error fetching products:', err);
-      alert(`Error loading products: ${err.message || 'Unknown error'}`);
+      alert(t('admin.products.errorLoading').replace('{message}', err.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -208,7 +210,7 @@ export default function ProductsPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} selected products?`)) return;
+    if (!confirm(t('admin.products.bulkDeleteConfirm').replace('{count}', selectedIds.size.toString()))) return;
     setBulkDeleting(true);
     try {
       const ids = Array.from(selectedIds);
@@ -218,10 +220,10 @@ export default function ProductsPage() {
       const failed = results.filter(r => r.status === 'rejected');
       setSelectedIds(new Set());
       await fetchProducts();
-      alert(`Bulk delete finished. Success: ${ids.length - failed.length}/${ids.length}`);
+      alert(t('admin.products.bulkDeleteFinished').replace('{success}', (ids.length - failed.length).toString()).replace('{total}', ids.length.toString()));
     } catch (err) {
       console.error('❌ [ADMIN] Bulk delete products error:', err);
-      alert('Failed to delete selected products');
+      alert(t('admin.products.failedToDelete'));
     } finally {
       setBulkDeleting(false);
     }
@@ -339,7 +341,7 @@ export default function ProductsPage() {
   };
 
   const handleDeleteProduct = async (productId: string, productTitle: string) => {
-    if (!confirm(`Are you sure you want to delete "${productTitle}"? This action cannot be undone.`)) {
+    if (!confirm(t('admin.products.deleteConfirm').replace('{title}', productTitle))) {
       return;
     }
 
@@ -350,10 +352,10 @@ export default function ProductsPage() {
       // Refresh products list
       fetchProducts();
       
-      alert('Product deleted successfully');
+      alert(t('admin.products.deletedSuccess'));
     } catch (err: any) {
       console.error('❌ [ADMIN] Error deleting product:', err);
-      alert(`Error deleting product: ${err.message || 'Unknown error'}`);
+      alert(t('admin.products.errorDeleting').replace('{message}', err.message || 'Unknown error'));
     }
   };
 
@@ -378,13 +380,13 @@ export default function ProductsPage() {
       fetchProducts();
       
       if (newStatus) {
-        alert(`Product "${productTitle}" is now published and visible!`);
+        alert(t('admin.products.productPublished').replace('{title}', productTitle));
       } else {
-        alert(`Product "${productTitle}" is now draft and hidden.`);
+        alert(t('admin.products.productDraft').replace('{title}', productTitle));
       }
     } catch (err: any) {
       console.error('❌ [ADMIN] Error updating product status:', err);
-      alert(`Error updating product status: ${err.message || 'Unknown error'}`);
+      alert(t('admin.products.errorUpdatingStatus').replace('{message}', err.message || 'Unknown error'));
     }
   };
 
@@ -406,7 +408,7 @@ export default function ProductsPage() {
       fetchProducts();
     } catch (err: any) {
       console.error('❌ [ADMIN] Error updating product featured status:', err);
-      alert(`Error updating featured status: ${err.message || 'Unknown error'}`);
+      alert(t('admin.products.errorUpdatingFeatured').replace('{message}', err.message || 'Unknown error'));
     }
   };
 
@@ -434,11 +436,11 @@ export default function ProductsPage() {
       await fetchProducts();
       
       if (failed.length > 0) {
-        alert(`Featured toggle finished. Success: ${successCount}/${products.length}. Some products failed to update.`);
+        alert(t('admin.products.featuredToggleFinished').replace('{success}', successCount.toString()).replace('{total}', products.length.toString()));
       }
     } catch (err) {
       console.error('❌ [ADMIN] Toggle all featured error:', err);
-      alert('Failed to update featured status for products');
+      alert(t('admin.products.failedToUpdateFeatured'));
     } finally {
       setTogglingAllFeatured(false);
     }
@@ -450,7 +452,7 @@ export default function ProductsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -471,10 +473,10 @@ export default function ProductsPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Admin Panel
+            {t('admin.products.backToAdmin')}
           </button>
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-gray-900">Products</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t('admin.products.title')}</h1>
           </div>
         </div>
 
@@ -488,11 +490,11 @@ export default function ProductsPage() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search by title or slug..."
+                  placeholder={t('admin.products.searchPlaceholder')}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <Button type="submit" variant="primary">
-                  Search
+                  {t('admin.products.search')}
                 </Button>
                 {(search || selectedCategories.size > 0 || skuSearch || stockFilter !== 'all') && (
                   <Button
@@ -506,7 +508,7 @@ export default function ProductsPage() {
                       setPage(1);
                     }}
                   >
-                    Clear All
+                    {t('admin.products.clearAll')}
                   </Button>
                 )}
               </div>
@@ -518,7 +520,7 @@ export default function ProductsPage() {
                   onClick={() => setCategoriesExpanded(!categoriesExpanded)}
                   className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 mb-2 hover:text-gray-900 focus:outline-none"
                 >
-                  <span>Filter by Category</span>
+                  <span>{t('admin.products.filterByCategory')}</span>
                   <svg
                     className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
                       categoriesExpanded ? 'transform rotate-180' : ''
@@ -533,9 +535,9 @@ export default function ProductsPage() {
                 {categoriesExpanded && (
                   <>
                     {categoriesLoading ? (
-                      <div className="text-sm text-gray-500">Loading categories...</div>
+                      <div className="text-sm text-gray-500">{t('admin.products.loadingCategories')}</div>
                     ) : categories.length === 0 ? (
-                      <div className="text-sm text-gray-500">No categories available</div>
+                      <div className="text-sm text-gray-500">{t('admin.products.noCategoriesAvailable')}</div>
                     ) : (
                       <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md p-3 bg-gray-50">
                         <div className="space-y-2">
@@ -573,7 +575,7 @@ export default function ProductsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Search by SKU
+                    {t('admin.products.searchBySku')}
                   </label>
                   <input
                     type="text"
@@ -582,14 +584,14 @@ export default function ProductsPage() {
                       setSkuSearch(e.target.value);
                       setPage(1);
                     }}
-                    placeholder="Enter SKU code..."
+                    placeholder={t('admin.products.skuPlaceholder')}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Filter by Stock
+                    {t('admin.products.filterByStock')}
                   </label>
                   <select
                     value={stockFilter}
@@ -599,9 +601,9 @@ export default function ProductsPage() {
                     }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">All Products</option>
-                    <option value="inStock">In Stock</option>
-                    <option value="outOfStock">Out of Stock</option>
+                    <option value="all">{t('admin.products.allProducts')}</option>
+                    <option value="inStock">{t('admin.products.inStock')}</option>
+                    <option value="outOfStock">{t('admin.products.outOfStock')}</option>
                   </select>
                 </div>
               </div>
@@ -610,13 +612,13 @@ export default function ProductsPage() {
 
           {/* Delete Selected Block */}
           <div className="px-4 py-3 flex items-center justify-between border border-gray-200 rounded-md bg-white">
-            <div className="text-sm text-gray-700">Selected {selectedIds.size} products</div>
+            <div className="text-sm text-gray-700">{t('admin.products.selectedProducts').replace('{count}', selectedIds.size.toString())}</div>
             <Button
               variant="outline"
               onClick={handleBulkDelete}
               disabled={selectedIds.size === 0 || bulkDeleting}
             >
-              {bulkDeleting ? 'Deleting...' : 'Delete selected'}
+              {bulkDeleting ? t('admin.products.deleting') : t('admin.products.deleteSelected')}
             </Button>
           </div>
 
@@ -631,7 +633,7 @@ export default function ProductsPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add New Product
+            {t('admin.products.addNewProduct')}
           </button>
         </div>
 
@@ -640,11 +642,11 @@ export default function ProductsPage() {
           {loading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading products...</p>
+              <p className="text-gray-600">{t('admin.products.loadingProducts')}</p>
             </div>
           ) : sortedProducts.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-gray-600">No products found</p>
+              <p className="text-gray-600">{t('admin.products.noProducts')}</p>
             </div>
           ) : (
             <>
@@ -655,7 +657,7 @@ export default function ProductsPage() {
                       <th className="px-4 py-3">
                         <input
                           type="checkbox"
-                          aria-label="Select all products"
+                          aria-label={t('admin.products.selectAll')}
                           checked={products.length > 0 && products.every(p => selectedIds.has(p.id))}
                           onChange={toggleSelectAll}
                         />
@@ -666,7 +668,7 @@ export default function ProductsPage() {
                           onClick={() => handleHeaderSort('title')}
                           className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-800"
                         >
-                          <span>PRODUCT</span>
+                          <span>{t('admin.products.product')}</span>
                           <span className="flex flex-col gap-0.5">
                             <svg
                               className={`w-2.5 h-2.5 ${
@@ -701,7 +703,7 @@ export default function ProductsPage() {
                           onClick={() => handleHeaderSort('stock')}
                           className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-800"
                         >
-                          <span>STOCK</span>
+                          <span>{t('admin.products.stock')}</span>
                           <span className="flex flex-col gap-0.5">
                             <svg
                               className={`w-2.5 h-2.5 ${
@@ -736,7 +738,7 @@ export default function ProductsPage() {
                           onClick={() => handleHeaderSort('price')}
                           className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-800"
                         >
-                          <span>PRICE</span>
+                          <span>{t('admin.products.price')}</span>
                           <span className="flex flex-col gap-0.5">
                             <svg
                               className={`w-2.5 h-2.5 ${
@@ -766,10 +768,10 @@ export default function ProductsPage() {
                         </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        STATUS
+                        {t('admin.products.status')}
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        FEATURED
+                        {t('admin.products.featured')}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <button
@@ -777,7 +779,7 @@ export default function ProductsPage() {
                           onClick={() => handleHeaderSort('createdAt')}
                           className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-800"
                         >
-                          <span>CREATED</span>
+                          <span>{t('admin.products.created')}</span>
                           <span className="flex flex-col gap-0.5">
                             <svg
                               className={`w-2.5 h-2.5 ${
@@ -807,7 +809,7 @@ export default function ProductsPage() {
                         </button>
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        ACTIONS
+                        {t('admin.products.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -817,7 +819,7 @@ export default function ProductsPage() {
                         <td className="px-4 py-4">
                           <input
                             type="checkbox"
-                            aria-label={`Select product ${product.title}`}
+                            aria-label={t('admin.products.selectProduct').replace('{title}', product.title)}
                             checked={selectedIds.has(product.id)}
                             onChange={() => toggleSelect(product.id)}
                           />
@@ -846,13 +848,13 @@ export default function ProductsPage() {
                                   className="px-3 py-1 bg-gray-100 rounded-lg text-sm"
                                 >
                                   <span className="font-medium text-gray-900">{colorStock.color}:</span>
-                                  <span className="ml-1 text-gray-600">{colorStock.stock} pcs</span>
+                                  <span className="ml-1 text-gray-600">{colorStock.stock} {t('admin.products.pcs')}</span>
                                 </div>
                               ))}
                             </div>
                           ) : (
                             <span className="text-sm text-gray-500">
-                              {product.stock > 0 ? `${product.stock} pcs` : '0 pcs'}
+                              {product.stock > 0 ? `${product.stock} ${t('admin.products.pcs')}` : `0 ${t('admin.products.pcs')}`}
                             </span>
                           )}
                         </td>
@@ -874,8 +876,8 @@ export default function ProductsPage() {
                                 ? 'bg-green-500'
                                 : 'bg-gray-300'
                             }`}
-                            title={product.published ? 'Click to switch to Draft' : 'Click to switch to Published'}
-                            aria-label={product.published ? 'Published - Click to switch to Draft' : 'Draft - Click to switch to Published'}
+                            title={product.published ? t('admin.products.clickToDraft') : t('admin.products.clickToPublished')}
+                            aria-label={product.published ? `${t('admin.products.published')} - ${t('admin.products.clickToDraft')}` : `${t('admin.products.draft')} - ${t('admin.products.clickToPublished')}`}
                           >
                             <span
                               className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform duration-200 ${
@@ -888,7 +890,7 @@ export default function ProductsPage() {
                           <button
                             onClick={() => handleToggleFeatured(product.id, product.featured || false, product.title)}
                             className="inline-flex items-center justify-center w-8 h-8 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
-                            title={product.featured ? 'Click to remove from featured' : 'Click to mark as featured'}
+                            title={product.featured ? t('admin.products.clickToRemoveFeatured') : t('admin.products.clickToMarkFeatured')}
                           >
                             <svg
                               className={`w-6 h-6 transition-all duration-200 ${
@@ -922,7 +924,7 @@ export default function ProductsPage() {
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                               </svg>
-                              Edit
+                              {t('admin.products.edit')}
                             </Button>
                             <Button
                               variant="ghost"
@@ -933,7 +935,7 @@ export default function ProductsPage() {
                               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
-                              Delete
+                              {t('admin.products.delete')}
                             </Button>
                           </div>
                         </td>
@@ -947,7 +949,7 @@ export default function ProductsPage() {
               {meta && meta.totalPages > 1 && (
                 <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                   <div className="text-sm text-gray-700">
-                    Showing page {meta.page} of {meta.totalPages} ({meta.total} total)
+                    {t('admin.products.showingPage').replace('{page}', meta.page.toString()).replace('{totalPages}', meta.totalPages.toString()).replace('{total}', meta.total.toString())}
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -955,14 +957,14 @@ export default function ProductsPage() {
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={page === 1}
                     >
-                      Previous
+                      {t('admin.products.previous')}
                     </Button>
                     <Button
                       variant="ghost"
                       onClick={() => setPage(p => Math.min(meta.totalPages, p + 1))}
                       disabled={page === meta.totalPages}
                     >
-                      Next
+                      {t('admin.products.next')}
                     </Button>
                   </div>
                 </div>

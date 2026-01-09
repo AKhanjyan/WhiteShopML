@@ -6,7 +6,8 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from '../admin-menu.config';
+import { getAdminMenuTABS } from '../admin-menu.config';
+import { useTranslation } from '../../../lib/i18n';
 
 interface Category {
   id: string;
@@ -16,6 +17,7 @@ interface Category {
 }
 
 function CategoriesSection() {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ function CategoriesSection() {
   }, [fetchCategories]);
 
   const handleDeleteCategory = async (categoryId: string, categoryTitle: string) => {
-    if (!confirm(`Are you sure you want to delete category "${categoryTitle}"? This action cannot be undone.`)) {
+    if (!confirm(t('admin.categories.deleteConfirm').replace('{name}', categoryTitle))) {
       return;
     }
 
@@ -48,7 +50,7 @@ function CategoriesSection() {
       await apiClient.delete(`/api/v1/admin/categories/${categoryId}`);
       console.log('✅ [ADMIN] Category deleted successfully');
       fetchCategories();
-      alert('Category deleted successfully');
+      alert(t('admin.categories.deletedSuccess'));
     } catch (err: any) {
       console.error('❌ [ADMIN] Error deleting category:', err);
       let errorMessage = 'Unknown error occurred';
@@ -61,21 +63,21 @@ function CategoriesSection() {
       } else if (err.response?.data?.detail) {
         errorMessage = err.response.data.detail;
       }
-      alert(`Error deleting category:\n\n${errorMessage}`);
+      alert(t('admin.categories.errorDeleting').replace('{message}', errorMessage));
     }
   };
 
   if (loading) {
     return (
-      <div className="text-center py-4">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto mb-2"></div>
-        <p className="text-sm text-gray-600">Loading categories...</p>
-      </div>
+        <div className="text-center py-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">{t('admin.categories.loadingCategories')}</p>
+        </div>
     );
   }
 
   if (categories.length === 0) {
-    return <p className="text-sm text-gray-500 py-2">No categories found</p>;
+    return <p className="text-sm text-gray-500 py-2">{t('admin.categories.noCategories')}</p>;
   }
 
   return (
@@ -98,7 +100,7 @@ function CategoriesSection() {
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Delete
+            {t('admin.common.delete')}
           </Button>
         </div>
       ))}
@@ -107,6 +109,7 @@ function CategoriesSection() {
 }
 
 export default function CategoriesPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -127,14 +130,14 @@ export default function CategoriesPage() {
     }
   }, [isLoggedIn, isAdmin, isLoading, router]);
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -155,9 +158,9 @@ export default function CategoriesPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Admin Panel
+            {t('admin.categories.backToAdmin')}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.categories.title')}</h1>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -198,7 +201,7 @@ export default function CategoriesPage() {
           {/* Main Content */}
           <div className="flex-1 min-w-0">
             <Card className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Categories</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.categories.title')}</h2>
               <CategoriesSection />
             </Card>
           </div>

@@ -5,7 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from '../admin-menu.config';
+import { getAdminMenuTABS } from '../admin-menu.config';
+import { useTranslation } from '../../../lib/i18n';
 
 interface AttributeValue {
   id: string;
@@ -23,6 +24,7 @@ interface Attribute {
 }
 
 function AttributesPageContent() {
+  const { t } = useTranslation();
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -61,7 +63,7 @@ function AttributesPageContent() {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      alert('Please fill in the name field');
+      alert(t('admin.attributes.fillName'));
       return;
     }
 
@@ -82,16 +84,16 @@ function AttributesPageContent() {
       setShowAddForm(false);
       setFormData({ name: '' });
       fetchAttributes();
-      alert('Attribute created successfully');
+      alert(t('admin.attributes.createdSuccess'));
     } catch (err: any) {
       console.error('❌ [ADMIN] Error creating attribute:', err);
       const errorMessage = err?.data?.detail || err?.message || 'Failed to create attribute';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.attributes.errorCreating').replace('{message}', errorMessage));
     }
   };
 
   const handleDeleteAttribute = async (attributeId: string, attributeName: string) => {
-    if (!confirm(`Are you sure you want to delete attribute "${attributeName}"? This action cannot be undone.`)) {
+    if (!confirm(t('admin.attributes.deleteConfirm').replace('{name}', attributeName))) {
       return;
     }
 
@@ -100,17 +102,17 @@ function AttributesPageContent() {
       await apiClient.delete(`/api/v1/admin/attributes/${attributeId}`);
       console.log('✅ [ADMIN] Attribute deleted successfully');
       fetchAttributes();
-      alert('Attribute deleted successfully');
+      alert(t('admin.attributes.deletedSuccess'));
     } catch (err: any) {
       console.error('❌ [ADMIN] Error deleting attribute:', err);
       const errorMessage = err?.data?.detail || err?.message || 'Failed to delete attribute';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.attributes.errorDeleting').replace('{message}', errorMessage));
     }
   };
 
   const handleAddValue = async (attributeId: string) => {
     if (!newValue.trim()) {
-      alert('Please enter a value');
+      alert(t('admin.attributes.enterValue'));
       return;
     }
 
@@ -129,13 +131,13 @@ function AttributesPageContent() {
     } catch (err: any) {
       console.error('❌ [ADMIN] Error adding value:', err);
       const errorMessage = err?.data?.detail || err?.message || 'Failed to add value';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.attributes.errorAddingValue').replace('{message}', errorMessage));
       setAddingValueTo(null);
     }
   };
 
   const handleDeleteValue = async (attributeId: string, valueId: string, valueLabel: string) => {
-    if (!confirm(`Are you sure you want to delete value "${valueLabel}"?`)) {
+    if (!confirm(t('admin.attributes.deleteValueConfirm').replace('{label}', valueLabel))) {
       return;
     }
 
@@ -149,7 +151,7 @@ function AttributesPageContent() {
     } catch (err: any) {
       console.error('❌ [ADMIN] Error deleting value:', err);
       const errorMessage = err?.data?.detail || err?.message || 'Failed to delete value';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.attributes.errorDeletingValue').replace('{message}', errorMessage));
       setDeletingValue(null);
     }
   };
@@ -172,7 +174,7 @@ function AttributesPageContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-sm text-gray-600">Loading attributes...</p>
+            <p className="text-sm text-gray-600">{t('admin.attributes.loadingAttributes')}</p>
           </div>
         </div>
       </div>
@@ -185,8 +187,8 @@ function AttributesPageContent() {
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Attributes</h1>
-            <p className="text-gray-600 mt-2">Manage global product attributes and their values</p>
+            <h1 className="text-3xl font-bold text-gray-900">{t('admin.attributes.title')}</h1>
+            <p className="text-gray-600 mt-2">{t('admin.attributes.subtitle')}</p>
           </div>
           <button
             onClick={() => setShowAddForm(!showAddForm)}
@@ -195,29 +197,29 @@ function AttributesPageContent() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            {showAddForm ? 'Cancel' : 'Add Attribute'}
+            {showAddForm ? t('admin.attributes.cancel') : t('admin.attributes.addAttribute')}
           </button>
         </div>
 
         {/* Add Attribute Form */}
         {showAddForm && (
           <div className="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Create New Attribute</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('admin.attributes.createNewAttribute')}</h2>
             <form onSubmit={handleCreateAttribute} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name <span className="text-red-500">*</span>
+                  {t('admin.attributes.name')} <span className="text-red-500">{t('admin.attributes.required')}</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Color, Size, Material"
+                  placeholder={t('admin.attributes.namePlaceholder')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Key will be auto-generated from name (lowercase, no spaces)
+                  {t('admin.attributes.keyAutoGenerated')}
                 </p>
               </div>
 
@@ -226,7 +228,7 @@ function AttributesPageContent() {
                   type="submit"
                   className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
                 >
-                  Create Attribute
+                  {t('admin.attributes.createAttribute')}
                 </button>
                 <button
                   type="button"
@@ -236,7 +238,7 @@ function AttributesPageContent() {
                   }}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                 >
-                  Cancel
+                  {t('admin.attributes.cancel')}
                 </button>
               </div>
             </form>
@@ -249,13 +251,13 @@ function AttributesPageContent() {
             <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No attributes yet</h3>
-            <p className="text-gray-600 mb-4">Get started by creating your first attribute</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.attributes.noAttributes')}</h3>
+            <p className="text-gray-600 mb-4">{t('admin.attributes.getStarted')}</p>
             <button
               onClick={() => setShowAddForm(true)}
               className="px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
             >
-              Create Attribute
+              {t('admin.attributes.createAttribute')}
             </button>
           </div>
         ) : (
@@ -291,19 +293,22 @@ function AttributesPageContent() {
                           </span>
                           {attribute.filterable && (
                             <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                              Filterable
+                              {t('admin.attributes.filterable')}
                             </span>
                           )}
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          {attribute.values.length} value{attribute.values.length !== 1 ? 's' : ''}
+                          {attribute.values.length === 1 
+                            ? t('admin.attributes.values').replace('{count}', attribute.values.length.toString())
+                            : t('admin.attributes.valuesPlural').replace('{count}', attribute.values.length.toString())
+                          }
                         </p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleDeleteAttribute(attribute.id, attribute.name)}
                       className="px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete attribute"
+                      title={t('admin.attributes.deleteAttribute')}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -325,7 +330,7 @@ function AttributesPageContent() {
                               handleAddValue(attribute.id);
                             }
                           }}
-                          placeholder="Add new value (e.g., Red, Blue, Large, Small)"
+                          placeholder={t('admin.attributes.addNewValue')}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                         />
                         <button
@@ -336,14 +341,14 @@ function AttributesPageContent() {
                           {addingValueTo === attribute.id ? (
                             <>
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              Adding...
+                              {t('admin.attributes.adding')}
                             </>
                           ) : (
                             <>
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                               </svg>
-                              Add
+                              {t('admin.attributes.add')}
                             </>
                           )}
                         </button>
@@ -351,7 +356,7 @@ function AttributesPageContent() {
 
                       {/* Values List */}
                       {attribute.values.length === 0 ? (
-                        <p className="text-sm text-gray-500 py-4 text-center">No values yet. Add your first value above.</p>
+                        <p className="text-sm text-gray-500 py-4 text-center">{t('admin.attributes.noValuesYet')}</p>
                       ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                           {attribute.values.map((value) => (
@@ -364,7 +369,7 @@ function AttributesPageContent() {
                                 onClick={() => handleDeleteValue(attribute.id, value.id, value.label)}
                                 disabled={deletingValue === value.id}
                                 className="text-red-600 hover:text-red-800 disabled:opacity-50 transition-colors"
-                                title="Delete value"
+                                title={t('admin.attributes.deleteValue')}
                               >
                                 {deletingValue === value.id ? (
                                   <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
@@ -391,6 +396,7 @@ function AttributesPageContent() {
 }
 
 export default function AttributesPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -415,7 +421,7 @@ export default function AttributesPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-sm text-gray-600">Loading...</p>
+          <p className="text-sm text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -425,7 +431,7 @@ export default function AttributesPage() {
     return null; // Will redirect
   }
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -7,11 +7,15 @@ import type { AdminMenuItem } from '../../components/AdminMenuDrawer';
  * - Մենյուի բոլոր կետերը centrally պահում ենք այստեղ, որ բոլոր admin էջերում նույնը լինի։
  * - "Discounts" label-ը նույնն է ամեն տեղ, ուղիղ տանում է `/admin/quick-settings` էջ։
  * - "Delivery" կետը միշտ առկա է, այդ թվում Analytics և Filter by Price էջերում sidebar-ում։
+ * 
+ * Note: This function returns menu items with translated labels.
+ * Use getAdminMenuTabs(t) in client components where t is from useTranslation().
  */
-export const ADMIN_MENU_TABS: AdminMenuItem[] = [
+export function getAdminMenuTABS(t: (path: string) => string): AdminMenuItem[] {
+  return [
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: t('admin.menu.dashboard'),
     path: '/admin',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,7 +30,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'orders',
-    label: 'Orders',
+    label: t('admin.menu.orders'),
     path: '/admin/orders',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,7 +45,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'products',
-    label: 'Products',
+    label: t('admin.menu.products'),
     path: '/admin/products',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +60,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'categories',
-    label: 'Categories',
+    label: t('admin.menu.categories'),
     path: '/admin/categories',
     isSubCategory: true,
     icon: (
@@ -72,7 +76,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'brands',
-    label: 'Brands',
+    label: t('admin.menu.brands'),
     path: '/admin/brands',
     isSubCategory: true,
     icon: (
@@ -88,7 +92,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'attributes',
-    label: 'Attributes',
+    label: t('admin.menu.attributes'),
     path: '/admin/attributes',
     isSubCategory: true,
     icon: (
@@ -104,7 +108,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'quick-settings',
-    label: 'Discounts',
+    label: t('admin.menu.discounts'),
     path: '/admin/quick-settings',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,7 +123,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'users',
-    label: 'Users',
+    label: t('admin.menu.users'),
     path: '/admin/users',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +138,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'analytics',
-    label: 'Analytics',
+    label: t('admin.menu.analytics'),
     path: '/admin/analytics',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +153,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'price-filter-settings',
-    label: 'Filter by Price',
+    label: t('admin.menu.filterByPrice'),
     path: '/admin/price-filter-settings',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +168,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'delivery',
-    label: 'Delivery',
+    label: t('admin.menu.delivery'),
     path: '/admin/delivery',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +183,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
   },
   {
     id: 'settings',
-    label: 'Settings',
+    label: t('admin.menu.settings'),
     path: '/admin/settings',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,11 +202,7 @@ export const ADMIN_MENU_TABS: AdminMenuItem[] = [
       </svg>
     ),
   },
-];
-
-// Visual logging to understand current admin menu configuration
-// Helps quickly see active tabs in case something breaks in the sidebar.
-// Test: [Test] This log can be removed later together with other Test helpers.
-console.log('[AdminMenu][Config] Loaded admin tabs:', ADMIN_MENU_TABS.map((item) => item.id));
+  ];
+}
 
 

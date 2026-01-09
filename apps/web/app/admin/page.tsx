@@ -6,7 +6,8 @@ import { useAuth } from '../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../lib/api-client';
 import { AdminMenuDrawer } from '../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from './admin-menu.config';
+import { getAdminMenuTABS } from './admin-menu.config';
+import { useTranslation } from '../../lib/i18n';
 
 
 
@@ -70,6 +71,7 @@ interface UserActivity {
 }
 
 export default function AdminPanel() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading, user } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -266,7 +268,7 @@ export default function AdminPanel() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -276,15 +278,15 @@ export default function AdminPanel() {
     return null; // Will redirect
   }
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-          <p className="text-gray-600 mt-2">Welcome back, {user?.firstName || 'Admin'}!</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.dashboard.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('admin.dashboard.welcome').replace('{name}', user?.firstName || t('admin.dashboard.title'))}</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -332,7 +334,7 @@ export default function AdminPanel() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Users</p>
+                <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.totalUsers')}</p>
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-16 bg-gray-200 rounded mt-1"></div>
                 ) : (
@@ -355,7 +357,7 @@ export default function AdminPanel() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.totalProducts')}</p>
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-16 bg-gray-200 rounded mt-1"></div>
                 ) : (
@@ -365,7 +367,7 @@ export default function AdminPanel() {
                     </p>
                     {stats && stats.products.lowStock > 0 && (
                       <p className="text-xs text-orange-600 mt-1">
-                        {stats.products.lowStock} low stock
+                        {t('admin.dashboard.lowStock').replace('{count}', stats.products.lowStock.toString())}
                       </p>
                     )}
                   </>
@@ -385,7 +387,7 @@ export default function AdminPanel() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Orders</p>
+                <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.totalOrders')}</p>
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-16 bg-gray-200 rounded mt-1"></div>
                 ) : (
@@ -395,7 +397,7 @@ export default function AdminPanel() {
                     </p>
                     {stats && stats.orders.pending > 0 && (
                       <p className="text-xs text-yellow-600 mt-1">
-                        {stats.orders.pending} pending
+                        {t('admin.dashboard.pending').replace('{count}', stats.orders.pending.toString())}
                       </p>
                     )}
                   </>
@@ -415,7 +417,7 @@ export default function AdminPanel() {
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Revenue</p>
+                <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.revenue')}</p>
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-24 bg-gray-200 rounded mt-1"></div>
                 ) : (
@@ -438,13 +440,13 @@ export default function AdminPanel() {
           {/* Recent Orders */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Orders</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.dashboard.recentOrders')}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/admin/orders')}
               >
-                View All
+                {t('admin.dashboard.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
@@ -458,7 +460,7 @@ export default function AdminPanel() {
                 </div>
               ) : recentOrders.length === 0 ? (
                 <div className="text-sm text-gray-600 text-center py-8">
-                  <p>No recent orders</p>
+                  <p>{t('admin.dashboard.noRecentOrders')}</p>
                 </div>
               ) : (
                 recentOrders.map((order) => (
@@ -480,10 +482,13 @@ export default function AdminPanel() {
                           </span>
                         </div>
                         <p className="text-xs text-gray-600">
-                          {order.customerEmail || order.customerPhone || 'Guest'}
+                          {order.customerEmail || order.customerPhone || t('admin.dashboard.guest')}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {order.itemsCount} item{order.itemsCount !== 1 ? 's' : ''} • {formatDate(order.createdAt)}
+                          {order.itemsCount === 1 
+                            ? t('admin.dashboard.items').replace('{count}', order.itemsCount.toString())
+                            : t('admin.dashboard.itemsPlural').replace('{count}', order.itemsCount.toString())
+                          } • {formatDate(order.createdAt)}
                         </p>
                       </div>
                       <div className="text-right">
@@ -501,13 +506,13 @@ export default function AdminPanel() {
           {/* Top Selling Products */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Top Selling Products</h2>
+              <h2 className="text-xl font-semibold text-gray-900">{t('admin.dashboard.topSellingProducts')}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/admin/products')}
               >
-                View All
+                {t('admin.dashboard.viewAll')}
               </Button>
             </div>
             <div className="space-y-4">
@@ -521,7 +526,7 @@ export default function AdminPanel() {
                 </div>
               ) : topProducts.length === 0 ? (
                 <div className="text-sm text-gray-600 text-center py-8">
-                  <p>No sales data yet</p>
+                  <p>{t('admin.dashboard.noSalesData')}</p>
                 </div>
               ) : (
                 topProducts.map((product, index) => (
@@ -548,7 +553,7 @@ export default function AdminPanel() {
                       <p className="text-sm font-medium text-gray-900 truncate">{product.title}</p>
                       <p className="text-xs text-gray-600">SKU: {product.sku}</p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {product.totalQuantity} sold • {product.orderCount} orders
+                        {t('admin.dashboard.sold').replace('{count}', product.totalQuantity.toString())} • {t('admin.dashboard.orders').replace('{count}', product.orderCount.toString())}
                       </p>
                     </div>
                     <div className="text-right">
@@ -566,7 +571,7 @@ export default function AdminPanel() {
 
         {/* User Activity */}
         <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">User Activity</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">{t('admin.dashboard.userActivity')}</h2>
           {userActivityLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[1, 2].map((i) => (
@@ -579,10 +584,10 @@ export default function AdminPanel() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Recent Registrations */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Registrations</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.dashboard.recentRegistrations')}</h3>
                 <div className="space-y-3">
                   {userActivity.recentRegistrations.length === 0 ? (
-                    <p className="text-sm text-gray-600">No recent registrations</p>
+                    <p className="text-sm text-gray-600">{t('admin.dashboard.noRecentRegistrations')}</p>
                   ) : (
                     userActivity.recentRegistrations.slice(0, 5).map((user) => (
                       <div key={user.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -599,10 +604,10 @@ export default function AdminPanel() {
 
               {/* Active Users */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Most Active Users</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.dashboard.mostActiveUsers')}</h3>
                 <div className="space-y-3">
                   {userActivity.activeUsers.length === 0 ? (
-                    <p className="text-sm text-gray-600">No active users</p>
+                    <p className="text-sm text-gray-600">{t('admin.dashboard.noActiveUsers')}</p>
                   ) : (
                     userActivity.activeUsers.slice(0, 5).map((user) => (
                       <div key={user.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -610,7 +615,7 @@ export default function AdminPanel() {
                           <p className="text-sm font-medium text-gray-900">{user.name}</p>
                           <p className="text-xs text-gray-600">{user.email || user.phone || 'N/A'}</p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {user.orderCount} orders • {formatCurrency(user.totalSpent, 'USD')}
+                            {t('admin.dashboard.ordersCount').replace('{count}', user.orderCount.toString())} • {formatCurrency(user.totalSpent, 'USD')}
                           </p>
                         </div>
                       </div>
@@ -620,13 +625,13 @@ export default function AdminPanel() {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-600">No user activity data</p>
+            <p className="text-sm text-gray-600">{t('admin.dashboard.noUserActivityData')}</p>
           )}
         </Card>
 
         {/* Quick Actions */}
         <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.dashboard.quickActions')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"
@@ -640,8 +645,8 @@ export default function AdminPanel() {
                   </svg>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-900">Add Product</p>
-                  <p className="text-xs text-gray-500">Create new product</p>
+                  <p className="font-medium text-gray-900">{t('admin.dashboard.addProduct')}</p>
+                  <p className="text-xs text-gray-500">{t('admin.dashboard.createNewProduct')}</p>
                 </div>
               </div>
             </Button>
@@ -657,8 +662,8 @@ export default function AdminPanel() {
                   </svg>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-900">Manage Orders</p>
-                  <p className="text-xs text-gray-500">View all orders</p>
+                  <p className="font-medium text-gray-900">{t('admin.dashboard.manageOrders')}</p>
+                  <p className="text-xs text-gray-500">{t('admin.dashboard.viewAllOrders')}</p>
                 </div>
               </div>
             </Button>
@@ -674,8 +679,8 @@ export default function AdminPanel() {
                   </svg>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-900">Manage Users</p>
-                  <p className="text-xs text-gray-500">View all users</p>
+                  <p className="font-medium text-gray-900">{t('admin.dashboard.manageUsers')}</p>
+                  <p className="text-xs text-gray-500">{t('admin.dashboard.viewAllUsers')}</p>
                 </div>
               </div>
             </Button>
@@ -692,8 +697,8 @@ export default function AdminPanel() {
                   </svg>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium text-gray-900">Settings</p>
-                  <p className="text-xs text-gray-500">Configure system</p>
+                  <p className="font-medium text-gray-900">{t('admin.dashboard.settings')}</p>
+                  <p className="text-xs text-gray-500">{t('admin.dashboard.configureSystem')}</p>
                 </div>
               </div>
             </Button>
@@ -702,18 +707,18 @@ export default function AdminPanel() {
 
         {/* Admin Info */}
         <Card className="p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Information</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('admin.dashboard.adminInformation')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-600">Email</p>
-              <p className="text-gray-900">{user?.email || 'N/A'}</p>
+              <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.email')}</p>
+              <p className="text-gray-900">{user?.email || t('admin.dashboard.na')}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Phone</p>
-              <p className="text-gray-900">{user?.phone || 'N/A'}</p>
+              <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.phone')}</p>
+              <p className="text-gray-900">{user?.phone || t('admin.dashboard.na')}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">Roles</p>
+              <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.roles')}</p>
               <div className="flex gap-2 mt-1">
                 {user?.roles?.map((role) => (
                   <span
@@ -722,12 +727,12 @@ export default function AdminPanel() {
                   >
                     {role}
                   </span>
-                )) || <span className="text-gray-900">customer</span>}
+                )) || <span className="text-gray-900">{t('admin.dashboard.customer')}</span>}
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-600">User ID</p>
-              <p className="text-gray-900 font-mono text-sm">{user?.id || 'N/A'}</p>
+              <p className="text-sm font-medium text-gray-600">{t('admin.dashboard.userId')}</p>
+              <p className="text-gray-900 font-mono text-sm">{user?.id || t('admin.dashboard.na')}</p>
             </div>
           </div>
         </Card>

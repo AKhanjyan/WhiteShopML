@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
+import { useTranslation } from '../../../lib/i18n';
 
 interface Order {
   id: string;
@@ -34,6 +35,7 @@ interface OrdersResponse {
 }
 
 export default function OrdersPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -174,7 +176,7 @@ export default function OrdersPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} selected orders?`)) return;
+    if (!confirm(t('admin.orders.deleteConfirm').replace('{count}', selectedIds.size.toString()))) return;
     setBulkDeleting(true);
     try {
       const ids = Array.from(selectedIds);
@@ -209,13 +211,13 @@ export default function OrdersPage() {
         const failedIds = failed.map(r => 
           r.status === 'fulfilled' ? r.value.id : 'unknown'
         );
-        alert(`Bulk delete finished. Success: ${successful.length}/${ids.length}\n\nFailed orders: ${failedIds.join(', ')}`);
+        alert(t('admin.orders.bulkDeleteFailed').replace('{success}', successful.length.toString()).replace('{total}', ids.length.toString()).replace('{failed}', failedIds.join(', ')));
       } else {
-        alert(`Bulk delete finished. Success: ${successful.length}/${ids.length}`);
+        alert(t('admin.orders.bulkDeleteFinished').replace('{success}', successful.length.toString()).replace('{total}', ids.length.toString()));
       }
     } catch (err) {
       console.error('❌ [ADMIN] Bulk delete orders error:', err);
-      alert('Failed to delete selected orders. Please try again.');
+      alert(t('admin.orders.failedToDelete'));
     } finally {
       setBulkDeleting(false);
     }
@@ -244,13 +246,13 @@ export default function OrdersPage() {
       );
 
       // Show success message
-      setUpdateMessage({ type: 'success', text: 'Status updated successfully' });
+      setUpdateMessage({ type: 'success', text: t('admin.orders.statusUpdated') });
       setTimeout(() => setUpdateMessage(null), 3000);
     } catch (err) {
       console.error('❌ [ADMIN] Error updating order status:', err);
       setUpdateMessage({ 
         type: 'error', 
-        text: 'Failed to update status. Please try again.' 
+        text: t('admin.orders.failedToUpdateStatus')
       });
       setTimeout(() => setUpdateMessage(null), 5000);
     } finally {
@@ -286,13 +288,13 @@ export default function OrdersPage() {
       );
 
       // Show success message
-      setUpdateMessage({ type: 'success', text: 'Payment status updated successfully' });
+      setUpdateMessage({ type: 'success', text: t('admin.orders.paymentStatusUpdated') });
       setTimeout(() => setUpdateMessage(null), 3000);
     } catch (err) {
       console.error('❌ [ADMIN] Error updating order payment status:', err);
       setUpdateMessage({ 
         type: 'error', 
-        text: 'Failed to update payment status. Please try again.' 
+        text: t('admin.orders.failedToUpdatePaymentStatus')
       });
       setTimeout(() => setUpdateMessage(null), 5000);
     } finally {
@@ -310,7 +312,7 @@ export default function OrdersPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.orders.loading')}</p>
         </div>
       </div>
     );
@@ -331,9 +333,9 @@ export default function OrdersPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Admin Panel
+            {t('admin.orders.backToAdmin')}
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">View Orders</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.orders.title')}</h1>
         </div>
 
         {/* Filters */}
@@ -357,11 +359,11 @@ export default function OrdersPage() {
                 router.push(newUrl, { scroll: false });
               }}
             >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="">{t('admin.orders.allStatuses')}</option>
+              <option value="pending">{t('admin.orders.pending')}</option>
+              <option value="processing">{t('admin.orders.processing')}</option>
+              <option value="completed">{t('admin.orders.completed')}</option>
+              <option value="cancelled">{t('admin.orders.cancelled')}</option>
             </select>
             <select
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -381,10 +383,10 @@ export default function OrdersPage() {
                 router.push(newUrl, { scroll: false });
               }}
             >
-              <option value="">All Payment Statuses</option>
-              <option value="paid">Paid</option>
-              <option value="pending">Pending Payment</option>
-              <option value="failed">Failed</option>
+              <option value="">{t('admin.orders.allPaymentStatuses')}</option>
+              <option value="paid">{t('admin.orders.paid')}</option>
+              <option value="pending">{t('admin.orders.pendingPayment')}</option>
+              <option value="failed">{t('admin.orders.failed')}</option>
             </select>
             {updateMessage && (
               <div
@@ -421,11 +423,11 @@ export default function OrdersPage() {
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading orders...</p>
+              <p className="text-gray-600">{t('admin.orders.loadingOrders')}</p>
             </div>
           ) : orders.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">No orders found</p>
+              <p className="text-gray-600">{t('admin.orders.noOrders')}</p>
             </div>
           ) : (
             <>
@@ -530,12 +532,12 @@ export default function OrdersPage() {
                           }}
                         >
                           <div className="text-sm font-medium text-gray-900">
-                            {[order.customerFirstName, order.customerLastName].filter(Boolean).join(' ') || 'Unknown customer'}
+                            {[order.customerFirstName, order.customerLastName].filter(Boolean).join(' ') || t('admin.orders.unknownCustomer')}
                           </div>
                           {order.customerPhone && (
                             <div className="text-sm text-gray-500">{order.customerPhone}</div>
                           )}
-                          <div className="mt-1 text-xs text-blue-600">View order details</div>
+                          <div className="mt-1 text-xs text-blue-600">{t('admin.orders.viewOrderDetails')}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">

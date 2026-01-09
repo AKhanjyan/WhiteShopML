@@ -6,7 +6,8 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from '../admin-menu.config';
+import { getAdminMenuTABS } from '../admin-menu.config';
+import { useTranslation } from '../../../lib/i18n';
 
 interface Brand {
   id: string;
@@ -15,6 +16,7 @@ interface Brand {
 }
 
 function BrandsSection() {
+  const { t } = useTranslation();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -42,7 +44,7 @@ function BrandsSection() {
   }, [fetchBrands]);
 
   const handleDeleteBrand = async (brandId: string, brandName: string) => {
-    if (!confirm(`Are you sure you want to delete brand "${brandName}"? This action cannot be undone.`)) {
+    if (!confirm(t('admin.brands.deleteConfirm').replace('{name}', brandName))) {
       return;
     }
 
@@ -51,7 +53,7 @@ function BrandsSection() {
       await apiClient.delete(`/api/v1/admin/brands/${brandId}`);
       console.log('✅ [ADMIN] Brand deleted successfully');
       fetchBrands();
-      alert('Brand deleted successfully');
+      alert(t('admin.brands.deletedSuccess'));
     } catch (err: any) {
       console.error('❌ [ADMIN] Error deleting brand:', err);
       let errorMessage = 'Unknown error occurred';
@@ -64,7 +66,7 @@ function BrandsSection() {
       } else if (err.response?.data?.detail) {
         errorMessage = err.response.data.detail;
       }
-      alert(`Error deleting brand:\n\n${errorMessage}`);
+      alert(t('admin.brands.errorDeleting') + '\n\n' + errorMessage);
     }
   };
 
@@ -90,7 +92,7 @@ function BrandsSection() {
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      alert('Brand name is required');
+      alert(t('admin.brands.nameRequired'));
       return;
     }
 
@@ -103,7 +105,7 @@ function BrandsSection() {
           name: formData.name.trim(),
         });
         console.log('✅ [ADMIN] Brand updated successfully');
-        alert('Brand updated successfully');
+        alert(t('admin.brands.updatedSuccess'));
       } else {
         // Create new brand
         console.log('➕ [ADMIN] Creating brand:', formData.name);
@@ -111,7 +113,7 @@ function BrandsSection() {
           name: formData.name.trim(),
         });
         console.log('✅ [ADMIN] Brand created successfully');
-        alert('Brand created successfully');
+        alert(t('admin.brands.createdSuccess'));
       }
       
       fetchBrands();
@@ -128,7 +130,7 @@ function BrandsSection() {
       } else if (err.response?.data?.detail) {
         errorMessage = err.response.data.detail;
       }
-      alert(`Error saving brand:\n\n${errorMessage}`);
+      alert(t('admin.brands.errorSaving') + '\n\n' + errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +148,7 @@ function BrandsSection() {
   return (
     <>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Brands</h2>
+        <h2 className="text-xl font-semibold text-gray-900">{t('admin.brands.title')}</h2>
         <Button
           onClick={handleOpenAddModal}
           variant="primary"
@@ -155,17 +157,17 @@ function BrandsSection() {
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add New
+          {t('admin.brands.addNew')}
         </Button>
       </div>
 
       {loading ? (
         <div className="text-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600">Loading brands...</p>
+          <p className="text-sm text-gray-600">{t('admin.brands.loading')}</p>
         </div>
       ) : brands.length === 0 ? (
-        <p className="text-sm text-gray-500 py-2">No brands found</p>
+        <p className="text-sm text-gray-500 py-2">{t('admin.brands.noBrands')}</p>
       ) : (
         <div className="space-y-2 max-h-96 overflow-y-auto">
         {brands.map((brand) => (
@@ -187,7 +189,7 @@ function BrandsSection() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit
+                {t('admin.brands.edit')}
               </Button>
               <Button
                 variant="ghost"
@@ -198,7 +200,7 @@ function BrandsSection() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
-                Delete
+                {t('admin.brands.delete')}
               </Button>
             </div>
           </div>
@@ -212,7 +214,7 @@ function BrandsSection() {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
-                {editingBrand ? 'Edit Brand' : 'Add New Brand'}
+                {editingBrand ? t('admin.brands.editBrand') : t('admin.brands.addNewBrand')}
               </h3>
               <button
                 onClick={handleCloseModal}
@@ -227,7 +229,7 @@ function BrandsSection() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label htmlFor="brand-name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Brand Name *
+                  {t('admin.brands.brandName')}
                 </label>
                 <input
                   id="brand-name"
@@ -235,7 +237,7 @@ function BrandsSection() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  placeholder="Enter brand name"
+                  placeholder={t('admin.brands.enterBrandName')}
                   required
                 />
               </div>
@@ -247,14 +249,14 @@ function BrandsSection() {
                   onClick={handleCloseModal}
                   disabled={submitting}
                 >
-                  Cancel
+                  {t('admin.brands.cancel')}
                 </Button>
                 <Button
                   type="submit"
                   variant="primary"
                   disabled={submitting}
                 >
-                  {submitting ? 'Saving...' : (editingBrand ? 'Update' : 'Create')}
+                  {submitting ? t('admin.brands.saving') : (editingBrand ? t('admin.brands.update') : t('admin.brands.create'))}
                 </Button>
               </div>
             </form>
@@ -266,6 +268,7 @@ function BrandsSection() {
 }
 
 export default function BrandsPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -286,14 +289,14 @@ export default function BrandsPage() {
     }
   }, [isLoggedIn, isAdmin, isLoading, router]);
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );

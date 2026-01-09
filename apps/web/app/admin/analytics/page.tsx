@@ -6,7 +6,8 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from '../admin-menu.config';
+import { getAdminMenuTABS } from '../admin-menu.config';
+import { useTranslation } from '../../../lib/i18n';
 
 interface AnalyticsData {
   period: string;
@@ -52,6 +53,7 @@ interface AdminStatsSummary {
 }
 
 export default function AnalyticsPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -100,14 +102,14 @@ export default function AnalyticsPage() {
       console.error('❌ [ADMIN] Error fetching analytics:', err);
       
       // Extract meaningful error message
-      let errorMessage = 'Չհաջողվեց բեռնել analytics տվյալները';
+      let errorMessage = t('admin.analytics.errorLoading');
       
       if (err.message) {
         // If error message contains HTML, it's likely a 404 page
         if (err.message.includes('<!DOCTYPE') || err.message.includes('<html')) {
-          errorMessage = 'Analytics API route-ը չի գտնվել: Խնդրում ենք ստուգել, որ API route-ը գոյություն ունի';
+          errorMessage = t('admin.analytics.apiNotFound');
         } else if (err.message.includes('Expected JSON')) {
-          errorMessage = 'API-ն վերադարձրել է սխալ response: Խնդրում ենք ստուգել server logs';
+          errorMessage = t('admin.analytics.invalidResponse');
         } else {
           errorMessage = err.message;
         }
@@ -115,7 +117,7 @@ export default function AnalyticsPage() {
         errorMessage = err.data.detail;
       }
       
-      alert(`Սխալ: ${errorMessage}`);
+      alert(`${t('admin.common.error')}: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -375,7 +377,7 @@ export default function AnalyticsPage() {
               
               {/* Tooltip on hover */}
               <title>
-                {formatDateShort(point._id)}: {point.count} orders, {formatCurrency(point.revenue)}
+                {formatDateShort(point._id)}: {t('admin.analytics.ordersLabel').replace('{count}', point.count.toString())}, {formatCurrency(point.revenue)}
               </title>
             </g>
           ))}
@@ -430,7 +432,7 @@ export default function AnalyticsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -440,7 +442,7 @@ export default function AnalyticsPage() {
     return null;
   }
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -503,7 +505,7 @@ export default function AnalyticsPage() {
             {/* Period Selector */}
             <Card className="p-6 mb-6 bg-white shadow-sm border border-gray-200 rounded-xl">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Time Period</h2>
+                <h2 className="text-xl font-semibold text-gray-900">{t('admin.analytics.timePeriod')}</h2>
                 {analytics && (
                   <div className="text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg">
                     {formatDate(analytics.dateRange.start)} - {formatDate(analytics.dateRange.end)}
@@ -513,7 +515,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-wrap gap-3 items-end">
                 <div className="flex-1 min-w-[200px]">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Period
+                    {t('admin.analytics.period')}
                   </label>
                   <select
                     value={period}
@@ -526,18 +528,18 @@ export default function AnalyticsPage() {
                     }}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
                   >
-                    <option value="day">Today</option>
-                    <option value="week">Last 7 Days</option>
-                    <option value="month">Last 30 Days</option>
-                    <option value="year">Last Year</option>
-                    <option value="custom">Custom Range</option>
+                    <option value="day">{t('admin.analytics.today')}</option>
+                    <option value="week">{t('admin.analytics.last7Days')}</option>
+                    <option value="month">{t('admin.analytics.last30Days')}</option>
+                    <option value="year">{t('admin.analytics.lastYear')}</option>
+                    <option value="custom">{t('admin.analytics.customRange')}</option>
                   </select>
                 </div>
                 {period === 'custom' && (
                   <>
                     <div className="flex-1 min-w-[200px]">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Start Date
+                        {t('admin.analytics.startDate')}
                       </label>
                       <input
                         type="date"
@@ -548,7 +550,7 @@ export default function AnalyticsPage() {
                     </div>
                     <div className="flex-1 min-w-[200px]">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        End Date
+                        {t('admin.analytics.endDate')}
                       </label>
                       <input
                         type="date"
@@ -565,7 +567,7 @@ export default function AnalyticsPage() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading analytics...</p>
+                <p className="text-gray-600">{t('admin.analytics.loadingAnalytics')}</p>
               </div>
             ) : analytics ? (
               <>
@@ -586,7 +588,7 @@ export default function AnalyticsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-blue-700 mb-1">Total Orders</p>
+                    <p className="text-sm font-medium text-blue-700 mb-1">{t('admin.analytics.totalOrders')}</p>
                     <p className="text-3xl font-bold text-blue-900">
                       {analytics.orders.totalOrders}
                     </p>
@@ -607,7 +609,7 @@ export default function AnalyticsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-green-700 mb-1">Total Revenue</p>
+                    <p className="text-sm font-medium text-green-700 mb-1">{t('admin.analytics.totalRevenue')}</p>
                     <p className="text-2xl font-bold text-green-900">
                       {formatCurrency(analytics.orders.totalRevenue)}
                     </p>
@@ -624,7 +626,7 @@ export default function AnalyticsPage() {
                         </svg>
                       </div>
                     </div>
-                    <p className="text-sm font-medium text-indigo-700 mb-1">Total Users</p>
+                    <p className="text-sm font-medium text-indigo-700 mb-1">{t('admin.analytics.totalUsers')}</p>
                     <p className="text-3xl font-bold text-indigo-900">
                       {totalUsers !== null ? totalUsers : '—'}
                     </p>
@@ -645,7 +647,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-3">
                       {analytics.topProducts.length === 0 ? (
                         <div className="text-center py-8">
-                          <p className="text-sm text-gray-500">No sales data available</p>
+                          <p className="text-sm text-gray-500">{t('admin.analytics.noSalesDataAvailable')}</p>
                         </div>
                       ) : (
                         analytics.topProducts.map((product, index) => (
@@ -680,13 +682,13 @@ export default function AnalyticsPage() {
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                   </svg>
-                                  {product.totalQuantity} sold
+                                  {t('admin.analytics.sold').replace('{count}', product.totalQuantity.toString())}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                   </svg>
-                                  {product.orderCount} orders
+                                  {t('admin.analytics.orders').replace('{count}', product.orderCount.toString())}
                                 </span>
                               </div>
                             </div>
@@ -704,7 +706,7 @@ export default function AnalyticsPage() {
                   {/* Top Categories */}
                   <Card className="p-6 bg-white shadow-sm border border-gray-200 rounded-xl">
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-semibold text-gray-900">Top Categories</h2>
+                      <h2 className="text-xl font-semibold text-gray-900">{t('admin.analytics.topCategories')}</h2>
                       <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                         <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -714,7 +716,7 @@ export default function AnalyticsPage() {
                     <div className="space-y-3">
                       {analytics.topCategories.length === 0 ? (
                         <div className="text-center py-8">
-                          <p className="text-sm text-gray-500">No category data available</p>
+                          <p className="text-sm text-gray-500">{t('admin.analytics.noCategoryDataAvailable')}</p>
                         </div>
                       ) : (
                         analytics.topCategories.map((category, index) => (
@@ -738,13 +740,13 @@ export default function AnalyticsPage() {
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                     </svg>
-                                    {category.totalQuantity} items
+                                    {t('admin.analytics.items').replace('{count}', category.totalQuantity.toString())}
                                   </span>
                                   <span className="flex items-center gap-1">
                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    {category.orderCount} orders
+                                    {t('admin.analytics.orders').replace('{count}', category.orderCount.toString())}
                                   </span>
                                 </div>
                               </div>
@@ -765,8 +767,8 @@ export default function AnalyticsPage() {
                 <Card className="p-8 bg-white shadow-lg border border-gray-200 rounded-2xl hover:shadow-xl transition-shadow duration-300">
                   <div className="flex items-center justify-between mb-8">
                     <div>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-2">Orders by Day</h2>
-                      <p className="text-sm text-gray-500 font-medium">Daily order trends and revenue</p>
+                      <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('admin.analytics.ordersByDay')}</h2>
+                      <p className="text-sm text-gray-500 font-medium">{t('admin.analytics.dailyOrderTrends')}</p>
                     </div>
                     <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -782,7 +784,7 @@ export default function AnalyticsPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                       </div>
-                      <p className="text-sm font-medium text-gray-500">No data available for this period</p>
+                      <p className="text-sm font-medium text-gray-500">{t('admin.analytics.noDataAvailable')}</p>
                     </div>
                   ) : (
                     <>
@@ -812,7 +814,7 @@ export default function AnalyticsPage() {
                                       className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 h-10 rounded-full flex items-center justify-between px-4 transition-all duration-700 group-hover:shadow-lg"
                                       style={{ width: `${percentage}%` }}
                                     >
-                                      <span className="text-xs text-white font-bold">{day.count} orders</span>
+                                      <span className="text-xs text-white font-bold">{t('admin.analytics.ordersLabel').replace('{count}', day.count.toString())}</span>
                                       <div className="w-2 h-2 bg-white rounded-full opacity-80"></div>
                                     </div>
                                   </div>
@@ -820,7 +822,7 @@ export default function AnalyticsPage() {
                                     <p className="text-sm font-bold text-gray-900">
                                       {formatCurrency(day.revenue)}
                                     </p>
-                                    <p className="text-xs text-gray-500 mt-0.5">revenue</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{t('admin.analytics.revenue')}</p>
                                   </div>
                                 </div>
                               </div>
@@ -834,7 +836,7 @@ export default function AnalyticsPage() {
               </>
             ) : (
               <Card className="p-6">
-                <p className="text-gray-600 text-center">No analytics data available</p>
+                <p className="text-gray-600 text-center">{t('admin.analytics.noAnalyticsData')}</p>
               </Card>
             )}
           </div>

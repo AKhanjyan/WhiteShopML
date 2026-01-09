@@ -6,9 +6,11 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button, Input } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from '../admin-menu.config';
+import { getAdminMenuTABS } from '../admin-menu.config';
+import { useTranslation } from '../../../lib/i18n';
 
 export default function PriceFilterSettingsPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -146,30 +148,30 @@ export default function PriceFilterSettingsPage() {
     const stepValueGEL = stepSizeGEL.trim() ? parseFloat(stepSizeGEL) : null;
 
     if (minValue !== null && (isNaN(minValue) || minValue < 0)) {
-      alert('Min Price must be a valid positive number');
+      alert(t('admin.priceFilter.minPriceInvalid'));
       return;
     }
 
     if (maxValue !== null && (isNaN(maxValue) || maxValue < 0)) {
-      alert('Max Price must be a valid positive number');
+      alert(t('admin.priceFilter.maxPriceInvalid'));
       return;
     }
 
     const validateStep = (value: number | null, label: string) => {
       if (value !== null && (isNaN(value) || value <= 0)) {
-        alert(`${label} must be a valid positive number`);
+        alert(t('admin.priceFilter.stepSizeInvalid').replace('{label}', label));
         return false;
       }
       return true;
     };
 
-    if (!validateStep(stepValueUSD, 'Step Size (USD)')) return;
-    if (!validateStep(stepValueAMD, 'Step Size (AMD)')) return;
-    if (!validateStep(stepValueRUB, 'Step Size (RUB)')) return;
-    if (!validateStep(stepValueGEL, 'Step Size (GEL)')) return;
+    if (!validateStep(stepValueUSD, t('admin.priceFilter.stepSizeUsd'))) return;
+    if (!validateStep(stepValueAMD, t('admin.priceFilter.stepSizeAmd'))) return;
+    if (!validateStep(stepValueRUB, t('admin.priceFilter.stepSizeRub'))) return;
+    if (!validateStep(stepValueGEL, t('admin.priceFilter.stepSizeGel'))) return;
 
     if (minValue !== null && maxValue !== null && minValue >= maxValue) {
-      alert('Min Price must be less than Max Price');
+      alert(t('admin.priceFilter.minMustBeLess'));
       return;
     }
 
@@ -202,12 +204,12 @@ export default function PriceFilterSettingsPage() {
         stepSizePerCurrency: Object.keys(stepSizePerCurrency).length ? stepSizePerCurrency : null,
       });
       
-      alert('Price filter settings saved successfully!');
+      alert(t('admin.priceFilter.savedSuccess'));
       console.log('✅ [PRICE FILTER SETTINGS] Settings saved');
     } catch (err: any) {
       console.error('❌ [PRICE FILTER SETTINGS] Error saving settings:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to save';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.priceFilter.errorSaving').replace('{message}', errorMessage));
     } finally {
       setSaving(false);
     }
@@ -248,7 +250,7 @@ export default function PriceFilterSettingsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -258,7 +260,7 @@ export default function PriceFilterSettingsPage() {
     return null; // Will redirect
   }
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -272,12 +274,12 @@ export default function PriceFilterSettingsPage() {
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Admin Panel
+            {t('admin.common.backToAdmin')}
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Filter by Price Settings</h1>
-              <p className="text-gray-600 mt-2">Configure default price range and step size for products page filter</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t('admin.priceFilter.title')}</h1>
+              <p className="text-gray-600 mt-2">{t('admin.priceFilter.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -321,23 +323,23 @@ export default function PriceFilterSettingsPage() {
           <div className="flex-1 min-w-0">
             <Card className="p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Price Filter Default Range</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('admin.priceFilter.priceFilterDefaultRange')}</h2>
                 <p className="text-sm text-gray-600">
-                  Set the default step size for the products page price filter slider for each currency.
+                  {t('admin.priceFilter.stepSizeDescription')}
                 </p>
               </div>
 
               {loading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading settings...</p>
+                  <p className="text-gray-600">{t('admin.priceFilter.loadingSettings')}</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Step Size (USD)
+                        {t('admin.priceFilter.stepSizeUsd')}
                       </label>
                       <Input
                         type="number"
@@ -351,7 +353,7 @@ export default function PriceFilterSettingsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Step Size (AMD)
+                        {t('admin.priceFilter.stepSizeAmd')}
                       </label>
                       <Input
                         type="number"
@@ -365,7 +367,7 @@ export default function PriceFilterSettingsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Step Size (RUB)
+                        {t('admin.priceFilter.stepSizeRub')}
                       </label>
                       <Input
                         type="number"
@@ -379,7 +381,7 @@ export default function PriceFilterSettingsPage() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Step Size (GEL)
+                        {t('admin.priceFilter.stepSizeGel')}
                       </label>
                       <Input
                         type="number"
@@ -399,13 +401,13 @@ export default function PriceFilterSettingsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <div className="text-sm text-blue-800">
-                        <p className="font-medium mb-1">How it works:</p>
+                        <p className="font-medium mb-1">{t('admin.priceFilter.howItWorks')}</p>
                         <ul className="list-disc list-inside space-y-1 text-blue-700">
-                          <li>Step Size controls how the price slider moves (e.g., 100 = increments of 100)</li>
-                          <li>You can set different step sizes for USD, AMD, RUB and GEL</li>
-                          <li>The default min/max range is taken from actual product prices</li>
-                          <li>Users can still adjust the full range using the slider on the products page</li>
-                          <li>Changes take effect immediately after saving</li>
+                          <li>{t('admin.priceFilter.stepSizeControls')}</li>
+                          <li>{t('admin.priceFilter.differentStepSizes')}</li>
+                          <li>{t('admin.priceFilter.defaultRange')}</li>
+                          <li>{t('admin.priceFilter.usersCanAdjust')}</li>
+                          <li>{t('admin.priceFilter.changesTakeEffect')}</li>
                         </ul>
                       </div>
                     </div>
@@ -421,10 +423,10 @@ export default function PriceFilterSettingsPage() {
                       {saving ? (
                         <div className="flex items-center gap-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          <span>Saving...</span>
+                          <span>{t('admin.priceFilter.saving')}</span>
                         </div>
                       ) : (
-                        'Save Settings'
+                        t('admin.priceFilter.saveSettings')
                       )}
                     </Button>
                     <Button
@@ -439,7 +441,7 @@ export default function PriceFilterSettingsPage() {
                         prevStepSizeRef.current = '';
                       }}
                     >
-                      Clear
+                      {t('admin.priceFilter.clear')}
                     </Button>
                   </div>
                 </div>

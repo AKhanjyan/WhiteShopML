@@ -6,7 +6,8 @@ import { useAuth } from '../../../lib/auth/AuthContext';
 import { Card, Button, Input } from '@shop/ui';
 import { apiClient } from '../../../lib/api-client';
 import { AdminMenuDrawer } from '../../../components/AdminMenuDrawer';
-import { ADMIN_MENU_TABS } from '../admin-menu.config';
+import { getAdminMenuTABS } from '../admin-menu.config';
+import { useTranslation } from '../../../lib/i18n';
 
 interface AdminSettingsResponse {
   globalDiscount: number;
@@ -27,6 +28,7 @@ interface AdminBrand {
 }
 
 export default function QuickSettingsPage() {
+  const { t } = useTranslation();
   const { isLoggedIn, isAdmin, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -201,7 +203,7 @@ export default function QuickSettingsPage() {
   const handleDiscountSave = async () => {
     const discountValue = parseFloat(globalDiscount.toString());
     if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
-      alert('Discount must be between 0-100');
+      alert(t('admin.quickSettings.discountMustBeValid'));
       return;
     }
 
@@ -216,12 +218,12 @@ export default function QuickSettingsPage() {
       // Refresh products to get updated labels with new discount percentage
       await fetchProducts();
       
-      alert('Discount saved successfully!');
+      alert(t('admin.quickSettings.savedSuccess'));
       console.log('✅ [QUICK SETTINGS] Global discount saved');
     } catch (err: any) {
       console.error('❌ [QUICK SETTINGS] Error saving discount:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to save';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.quickSettings.errorSaving').replace('{message}', errorMessage));
     } finally {
       setDiscountSaving(false);
     }
@@ -236,12 +238,12 @@ export default function QuickSettingsPage() {
         ...buildDiscountPayload(),
       });
       await fetchProducts();
-      alert('Category discounts saved successfully!');
+      alert(t('admin.quickSettings.savedSuccess'));
       console.log('✅ [QUICK SETTINGS] Category discounts saved');
     } catch (err: any) {
       console.error('❌ [QUICK SETTINGS] Error saving category discounts:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to save';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.quickSettings.errorSaving').replace('{message}', errorMessage));
     } finally {
       setCategorySaving(false);
     }
@@ -256,12 +258,12 @@ export default function QuickSettingsPage() {
         ...buildDiscountPayload(),
       });
       await fetchProducts();
-      alert('Brand discounts saved successfully!');
+      alert(t('admin.quickSettings.savedSuccess'));
       console.log('✅ [QUICK SETTINGS] Brand discounts saved');
     } catch (err: any) {
       console.error('❌ [QUICK SETTINGS] Error saving brand discounts:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to save';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.quickSettings.errorSaving').replace('{message}', errorMessage));
     } finally {
       setBrandSaving(false);
     }
@@ -270,7 +272,7 @@ export default function QuickSettingsPage() {
   const handleProductDiscountSave = async (productId: string) => {
     const discountValue = productDiscounts[productId] || 0;
     if (isNaN(discountValue) || discountValue < 0 || discountValue > 100) {
-      alert('Discount must be between 0-100');
+      alert(t('admin.quickSettings.discountMustBeValid'));
       return;
     }
 
@@ -291,12 +293,12 @@ export default function QuickSettingsPage() {
       // Refresh products to get updated labels with new discount percentage
       await fetchProducts();
       
-      alert('Product discount saved successfully!');
+      alert(t('admin.quickSettings.productDiscountSaved'));
       console.log('✅ [QUICK SETTINGS] Product discount saved');
     } catch (err: any) {
       console.error('❌ [QUICK SETTINGS] Error saving product discount:', err);
       const errorMessage = err.response?.data?.detail || err.message || 'Failed to save';
-      alert(`Error: ${errorMessage}`);
+      alert(t('admin.quickSettings.errorSavingProduct').replace('{message}', errorMessage));
     } finally {
       setSavingProductId(null);
     }
@@ -340,7 +342,7 @@ export default function QuickSettingsPage() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{t('admin.common.loading')}</p>
         </div>
       </div>
     );
@@ -350,15 +352,15 @@ export default function QuickSettingsPage() {
     return null; // Will redirect
   }
 
-  const adminTabs = ADMIN_MENU_TABS;
+  const adminTabs = getAdminMenuTABS(t);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Quick Settings</h1>
-          <p className="text-gray-600 mt-2">Quick settings and discount management</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('admin.quickSettings.title')}</h1>
+          <p className="text-gray-600 mt-2">{t('admin.quickSettings.subtitle')}</p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -402,8 +404,8 @@ export default function QuickSettingsPage() {
             <Card className="p-6 mb-8 bg-white border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Quick Settings</h2>
-                  <p className="text-sm text-gray-600 mt-1">Quick settings and discount management</p>
+                  <h2 className="text-xl font-semibold text-gray-900">{t('admin.quickSettings.quickSettingsTitle')}</h2>
+                  <p className="text-sm text-gray-600 mt-1">{t('admin.quickSettings.quickSettingsSubtitle')}</p>
                 </div>
               </div>
               
@@ -417,8 +419,8 @@ export default function QuickSettingsPage() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Global Discount</h3>
-                      <p className="text-xs text-gray-500">For all products</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('admin.quickSettings.globalDiscount')}</h3>
+                      <p className="text-xs text-gray-500">{t('admin.quickSettings.forAllProducts')}</p>
                     </div>
                   </div>
                   
@@ -452,10 +454,10 @@ export default function QuickSettingsPage() {
                           {discountSaving ? (
                             <div className="flex items-center gap-2">
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Saving...</span>
+                              <span>{t('admin.quickSettings.saving')}</span>
                             </div>
                           ) : (
-                            'Save'
+                            t('admin.quickSettings.save')
                           )}
                         </Button>
                       </div>
@@ -463,13 +465,13 @@ export default function QuickSettingsPage() {
                       {globalDiscount > 0 ? (
                         <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                           <p className="text-sm text-green-800">
-                            <strong>Active:</strong> {globalDiscount}% discount is applied to all products
+                            <strong>{t('admin.quickSettings.active')}</strong> {t('admin.quickSettings.discountApplied').replace('{percent}', globalDiscount.toString())}
                           </p>
                         </div>
                       ) : (
                         <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
                           <p className="text-sm text-gray-600">
-                            No global discount. Enter a percentage (0-100) to give a discount to all products
+                            {t('admin.quickSettings.noGlobalDiscount')}
                           </p>
                         </div>
                       )}
@@ -513,7 +515,7 @@ export default function QuickSettingsPage() {
                           onClick={() => setGlobalDiscount(0)}
                           className="px-3"
                         >
-                          Cancel
+                          {t('admin.quickSettings.cancel')}
                         </Button>
                       </div>
                     </div>
@@ -529,27 +531,27 @@ export default function QuickSettingsPage() {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Useful Information</h3>
-                      <p className="text-xs text-gray-500">About discounts</p>
+                      <h3 className="text-lg font-semibold text-gray-900">{t('admin.quickSettings.usefulInformation')}</h3>
+                      <p className="text-xs text-gray-500">{t('admin.quickSettings.aboutDiscounts')}</p>
                     </div>
                   </div>
                   
                   <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-start gap-2">
                       <span className="text-blue-600 mt-0.5">•</span>
-                      <p>The discount applies to the prices of all products</p>
+                      <p>{t('admin.quickSettings.discountApplies')}</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-blue-600 mt-0.5">•</span>
-                      <p>Example: 10% = all prices will decrease by 10%</p>
+                      <p>{t('admin.quickSettings.discountExample')}</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-blue-600 mt-0.5">•</span>
-                      <p>0% = no discount, original prices are displayed</p>
+                      <p>{t('admin.quickSettings.noDiscount')}</p>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-blue-600 mt-0.5">•</span>
-                      <p>Changes are applied immediately</p>
+                      <p>{t('admin.quickSettings.changesApplied')}</p>
                     </div>
                   </div>
                   
@@ -560,7 +562,7 @@ export default function QuickSettingsPage() {
                       onClick={() => router.push('/admin/settings')}
                       className="w-full"
                     >
-                      More settings →
+                      {t('admin.quickSettings.moreSettings')}
                     </Button>
                   </div>
                 </div>
@@ -571,8 +573,8 @@ export default function QuickSettingsPage() {
             <Card className="p-6 mb-8 bg-white border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Category Discounts</h2>
-                  <p className="text-sm text-gray-600">Apply discounts to every product inside a category</p>
+                  <h2 className="text-xl font-semibold text-gray-900">{t('admin.quickSettings.categoryDiscounts')}</h2>
+                  <p className="text-sm text-gray-600">{t('admin.quickSettings.categoryDiscountsSubtitle')}</p>
                 </div>
                 <Button
                   variant="primary"
@@ -593,11 +595,11 @@ export default function QuickSettingsPage() {
               {categoriesLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading categories...</p>
+                  <p className="text-gray-600">{t('admin.quickSettings.loadingCategories')}</p>
                 </div>
               ) : categories.length === 0 ? (
                 <div className="text-center py-6 text-gray-600 border border-dashed border-gray-200 rounded">
-                  No categories found
+                  {t('admin.quickSettings.noCategories')}
                 </div>
               ) : (
                 <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-lg">
@@ -613,9 +615,9 @@ export default function QuickSettingsPage() {
                             {category.title || 'Untitled category'}
                           </p>
                           {category.parentId ? (
-                            <p className="text-xs text-gray-500">Parent Category ID: {category.parentId}</p>
+                            <p className="text-xs text-gray-500">{t('admin.quickSettings.parentCategoryId').replace('{id}', category.parentId)}</p>
                           ) : (
-                            <p className="text-xs text-gray-500">Root category</p>
+                            <p className="text-xs text-gray-500">{t('admin.quickSettings.rootCategory')}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
@@ -636,7 +638,7 @@ export default function QuickSettingsPage() {
                             onClick={() => clearCategoryDiscount(category.id)}
                             disabled={currentValue === undefined}
                           >
-                            Clear
+                            {t('admin.quickSettings.clear')}
                           </Button>
                         </div>
                       </div>
@@ -650,8 +652,8 @@ export default function QuickSettingsPage() {
             <Card className="p-6 mb-8 bg-white border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Brand Discounts</h2>
-                  <p className="text-sm text-gray-600">Set discounts for products of a specific brand</p>
+                  <h2 className="text-xl font-semibold text-gray-900">{t('admin.quickSettings.brandDiscounts')}</h2>
+                  <p className="text-sm text-gray-600">{t('admin.quickSettings.brandDiscountsSubtitle')}</p>
                 </div>
                 <Button
                   variant="primary"
@@ -661,10 +663,10 @@ export default function QuickSettingsPage() {
                   {brandSaving ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Saving...</span>
+                      <span>{t('admin.quickSettings.saving')}</span>
                     </div>
                   ) : (
-                    'Save'
+                    t('admin.quickSettings.save')
                   )}
                 </Button>
               </div>
@@ -672,11 +674,11 @@ export default function QuickSettingsPage() {
               {brandsLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading brands...</p>
+                  <p className="text-gray-600">{t('admin.quickSettings.loadingBrands')}</p>
                 </div>
               ) : brands.length === 0 ? (
                 <div className="text-center py-6 text-gray-600 border border-dashed border-gray-200 rounded">
-                  No brands found
+                  {t('admin.quickSettings.noBrands')}
                 </div>
               ) : (
                 <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-lg">
@@ -692,7 +694,7 @@ export default function QuickSettingsPage() {
                             {brand.name || 'Untitled brand'}
                           </p>
                           <p className="text-xs text-gray-500">
-                            Brand ID: <span className="font-mono text-gray-600">{brand.id}</span>
+                            {t('admin.quickSettings.brandId').replace('{id}', brand.id)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -713,7 +715,7 @@ export default function QuickSettingsPage() {
                             onClick={() => clearBrandDiscount(brand.id)}
                             disabled={currentValue === undefined}
                           >
-                            Clear
+                            {t('admin.quickSettings.clear')}
                           </Button>
                         </div>
                       </div>
@@ -726,18 +728,18 @@ export default function QuickSettingsPage() {
             {/* Products List with Individual Discounts */}
             <Card className="p-6 bg-white border-gray-200">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Product Discounts</h2>
-                <p className="text-sm text-gray-600">Set individual discount percentage for each product</p>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('admin.quickSettings.productDiscounts')}</h2>
+                <p className="text-sm text-gray-600">{t('admin.quickSettings.productDiscountsSubtitle')}</p>
               </div>
 
               {productsLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading products...</p>
+                  <p className="text-gray-600">{t('admin.quickSettings.loadingProducts')}</p>
                 </div>
               ) : products.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-600">No products found</p>
+                  <p className="text-gray-600">{t('admin.quickSettings.noProducts')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -846,7 +848,7 @@ export default function QuickSettingsPage() {
                               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                             </div>
                           ) : (
-                            'Save'
+                            t('admin.quickSettings.save')
                           )}
                         </Button>
                       </div>
