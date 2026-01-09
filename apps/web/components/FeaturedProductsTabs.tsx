@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { apiClient } from '../lib/api-client';
-import { getStoredLanguage } from '../lib/language';
+import { getStoredLanguage, type LanguageCode } from '../lib/language';
 import { ProductCard } from './ProductCard';
 import { t } from '../lib/i18n';
 
@@ -50,13 +50,36 @@ const MOBILE_GRID_LAYOUT =
  * Similar to the reference design with underlined active tab
  */
 export function FeaturedProductsTabs() {
-  const language = getStoredLanguage();
+  // Use state for language to prevent hydration mismatch
+  // Start with 'en' on server, update on client mount
+  const [language, setLanguage] = useState<LanguageCode>('en');
   const [activeTab, setActiveTab] = useState<FilterType>('new');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Generate tabs with translations
+  // Update language on mount and when language changes
+  useEffect(() => {
+    const updateLanguage = () => {
+      const storedLang = getStoredLanguage();
+      setLanguage(storedLang);
+    };
+
+    // Update immediately on mount
+    updateLanguage();
+
+    // Listen to language-updated events
+    const handleLanguageUpdate = () => {
+      updateLanguage();
+    };
+
+    window.addEventListener('language-updated', handleLanguageUpdate);
+    return () => {
+      window.removeEventListener('language-updated', handleLanguageUpdate);
+    };
+  }, []);
+
+  // Generate tabs with translations (memoized based on language)
   const tabs: Tab[] = [
     { id: 'new', label: t(language, 'home.featured_products.tab_new'), filter: 'new' },
     { id: 'bestseller', label: t(language, 'home.featured_products.tab_bestseller'), filter: 'bestseller' },
@@ -72,11 +95,12 @@ export function FeaturedProductsTabs() {
       setError(null);
       console.log('📦 [FeaturedProductsTabs] Fetching products with filter:', filter);
 
-      const language = getStoredLanguage();
+      // Use current language from state (always up-to-date)
+      const currentLang = language;
       const params: Record<string, string> = {
         page: '1',
         limit: PRODUCTS_PER_PAGE.toString(),
-        lang: language,
+        lang: currentLang,
       };
 
       // Add filter if provided
@@ -93,6 +117,7 @@ export function FeaturedProductsTabs() {
       setProducts((response.data || []).slice(0, PRODUCTS_PER_PAGE));
     } catch (err: any) {
       console.error('❌ [FeaturedProductsTabs] Error fetching products:', err);
+      // Use current language from state for error message
       setError(t(language, 'home.featured_products.errorLoading'));
       setProducts([]);
     } finally {
